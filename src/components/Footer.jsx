@@ -18,10 +18,7 @@ function Footer({ social, primaryColor }) {
     <footer className={`${bgClass} text-white pt-12 pb-6`}>
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
-          <h3 className="text-lg font-semibold mb-4">About BizBud</h3>
-          <p className="text-sm leading-relaxed">
-            We build fast, professional websites for small businesses across the UK. From local shops to solo tradespeople, we help you shine online.
-          </p>
+
         </div>
 
         <div>

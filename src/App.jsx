@@ -8,6 +8,7 @@ import ContactSection from "./components/ContactSection";
 import FeaturesSection from "./components/FeaturesSection";
 import FAQSection from "./components/FAQSection";
 import Footer from "./components/Footer";
+import GallerySection from "./components/GallerySection";
 
 function App() {
   const [content, setContent] = useState(null);
@@ -34,6 +35,7 @@ function App() {
       {config.showAbout && <AboutSection {...content.about} primaryColor={config.primaryColor}/>}
       {config.showServices && <ServicesSection {...content.services} primaryColor={config.primaryColor} />}
       {config.showFeatures && <FeaturesSection {...content.features} primaryColor={config.primaryColor}/>}
+      {config.showGallery && <GallerySection {...content.gallery} primaryColor={config.primaryColor}/>}
       {config.showFAQ && <FAQSection {...content.faq} primaryColor={config.primaryColor}/>}
       {config.showTestimonials && <TestimonialsSection {...content.testimonials} primaryColor={config.primaryColor}/>}
       {config.showContact && <ContactSection {...content.contact} primaryColor={config.primaryColor}/>}
