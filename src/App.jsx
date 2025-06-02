@@ -1,25 +1,37 @@
 import { useEffect, useState } from "react";
-import content from "./content/content.json";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import AboutSection from "./components/AboutSection";
+import ServicesSection from "./components/ServicesSection";
+import TestimonialsSection from "./components/TestimonialsSection";
 import ContactSection from "./components/ContactSection";
 
 function App() {
-  const [siteContent, setSiteContent] = useState(null);
+  const [content, setContent] = useState(null);
+  const [config, setConfig] = useState(null);
 
   useEffect(() => {
-    setSiteContent(content);
+    Promise.all([
+      fetch("/client.json").then((r) => r.json()),
+      fetch("/config.json").then((r) => r.json())
+    ])
+      .then(([client, cfg]) => {
+        setContent(client);
+        setConfig(cfg);
+      })
+      .catch(console.error);
   }, []);
 
-  if (!siteContent) return null;
+  if (!content || !config) return null;
 
   return (
     <main>
-      <Header siteTitle={siteContent.siteTitle} logoUrl={siteContent.logoUrl} />
-      <HeroSection {...siteContent.hero} />
-      <AboutSection {...siteContent.about} />
-      <ContactSection {...siteContent.contact} />
+      <Header siteTitle={content.siteTitle} logoUrl={content.logoUrl} />
+      {config.showHero && <HeroSection {...content.hero} primaryColor={config.primaryColor}/>}
+      {config.showAbout && <AboutSection {...content.about} primaryColor={config.primaryColor}/>}
+      {config.showServices && <ServicesSection {...content.services} primaryColor={config.primaryColor}/>}
+      {config.showTestimonials && <TestimonialsSection {...content.testimonials} primaryColor={config.primaryColor}/>}
+      {config.showContact && <ContactSection {...content.contact} primaryColor={config.primaryColor}/>}
     </main>
   );
 }

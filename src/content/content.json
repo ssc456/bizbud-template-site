@@ -1,19 +1,37 @@
 {
-    "siteTitle": "John's Cleaning Services",
-    "logoUrl": "/logo.png",
-    "hero": {
-      "headline": "Spotless Homes, Happy Hearts",
-      "subheadline": "Professional, affordable cleaning for your home or business.",
-      "ctaText": "Get in Touch"
-    },
-    "about": {
-      "title": "About Us",
-      "text": "John's Cleaning Services is a small independent business based in Manchester, offering top-quality domestic and commercial cleaning with a personal touch."
-    },
-    "contact": {
-      "title": "Contact Us",
-      "email": "john@example.com",
-      "phone": "07700 900123"
-    }
+  "siteTitle": "John's Cleaning",
+  "logoUrl": "/logo.png",
+  "hero": {
+    "title": "Professional Cleaning Services",
+    "subtitle": "Spotless spaces, affordable prices.",
+    "ctaText": "Book Now",
+    "ctaLink": "#contact",
+    "imageUrl": "/cleaning.jpg"
+  },
+  "about": {
+    "title": "About Us",
+    "content": "We're a family-run business offering top-notch cleaning across town. Trustworthy, reliable, and friendly service every time.",
+    "imageUrl": "/about.jpg"
+  },
+  "services": {
+    "title": "What We Do",
+    "services": [
+      { "name": "Domestic Cleaning", "description": "Weekly or one-off house cleans tailored to your needs." },
+      { "name": "End of Tenancy", "description": "Full deep cleans for landlords, tenants, and agents." },
+      { "name": "Office Cleaning", "description": "Reliable commercial cleaning for workspaces of any size." }
+    ]
+  },
+  "testimonials": {
+    "title": "Happy Customers",
+    "testimonials": [
+      { "quote": "Amazing service! My home has never looked so clean.", "author": "Emily P." },
+      { "quote": "Reliable and professional. Highly recommend.", "author": "James R." }
+    ]
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "email": "john@cleaning.com",
+    "phone": "07700 900123",
+    "address": "123 Main Street, Townsville"
   }
-  
+}

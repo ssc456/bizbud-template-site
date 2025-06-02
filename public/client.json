@@ -1,0 +1,36 @@
+{
+  "siteTitle": "John's Cleaning Services",
+  "logoUrl": "/logo.png",
+  "hero": {
+    "heading": "Professional Cleaning Services",
+    "subheading": "Reliable. Affordable. Local.",
+    "ctaText": "Get a Quote",
+    "ctaLink": "#contact",
+    "backgroundImageUrl": "/hero-bg.jpg"
+  },
+  "about": {
+    "title": "Who We Are",
+    "description": "We provide top-quality cleaning services for homes and small offices across the city.",
+    "imageUrl": "/about.jpg"
+  },
+  "services": {
+    "title": "What We Offer",
+    "services": [
+      { "name": "Home Cleaning", "description": "Regular or deep cleaning of your home." },
+      { "name": "Office Cleaning", "description": "Keep your workspace spotless." },
+      { "name": "Carpet Cleaning", "description": "Revive your carpets with professional care." }
+    ]
+  },
+  "testimonials": {
+    "title": "What Our Clients Say",
+    "testimonials": [
+      { "name": "Sarah", "quote": "My house has never looked better!" },
+      { "name": "Tom", "quote": "Reliable and friendly service every time." }
+    ]
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "description": "Have questions or want to book a service? Drop us a message!",
+    "email": "contact@johnscleaning.com"
+  }
+}
