@@ -1,0 +1,19 @@
+{
+    "siteTitle": "John's Cleaning Services",
+    "logoUrl": "/logo.png",
+    "hero": {
+      "headline": "Spotless Homes, Happy Hearts",
+      "subheadline": "Professional, affordable cleaning for your home or business.",
+      "ctaText": "Get in Touch"
+    },
+    "about": {
+      "title": "About Us",
+      "text": "John's Cleaning Services is a small independent business based in Manchester, offering top-quality domestic and commercial cleaning with a personal touch."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "email": "john@example.com",
+      "phone": "07700 900123"
+    }
+  }
+  
