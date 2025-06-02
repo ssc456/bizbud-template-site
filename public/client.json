@@ -1,36 +1,54 @@
 {
-  "siteTitle": "John's Cleaning Services",
+  "siteTitle": "BizBud Template",
   "logoUrl": "/logo.png",
   "hero": {
-    "heading": "Professional Cleaning Services",
-    "subheading": "Reliable. Affordable. Local.",
-    "ctaText": "Get a Quote",
-    "ctaLink": "#contact",
-    "backgroundImageUrl": "/hero-bg.jpg"
+    "headline": "Launch Your Business Online Today",
+    "subheadline": "Get a modern, mobile-friendly website tailored for your small business — fast and affordable.",
+    "ctaText": "Get Started",
+    "ctaLink": "#contact"
   },
   "about": {
-    "title": "Who We Are",
-    "description": "We provide top-quality cleaning services for homes and small offices across the city.",
-    "imageUrl": "/about.jpg"
+    "title": "About Us",
+    "description": "BizBud helps small businesses get online with beautiful, simple websites. Whether you're a baker, a cleaner, or a local service provider, we make your business look good online.",
+    "image": "/images/about.png"
   },
   "services": {
     "title": "What We Offer",
-    "services": [
-      { "name": "Home Cleaning", "description": "Regular or deep cleaning of your home." },
-      { "name": "Office Cleaning", "description": "Keep your workspace spotless." },
-      { "name": "Carpet Cleaning", "description": "Revive your carpets with professional care." }
+    "items": [
+      { "title": "Professional Website", "description": "Sleek, responsive, and SEO-ready site tailored to your business." },
+      { "title": "Custom Domain Setup", "description": "Get your own .co.uk or .com with email address setup too." },
+      { "title": "Fast Turnaround", "description": "We'll have your site live within 48 hours of final approval." }
+    ]
+  },
+  "features": {
+    "title": "Why Choose Us?",
+    "items": [
+      { "icon": "RocketLaunchIcon", "title": "Fast Setup", "description": "From draft to live in under 2 days." },
+      { "icon": "DevicePhoneMobileIcon", "title": "Mobile First", "description": "Looks perfect on any device." },
+      { "icon": "CogIcon", "title": "Easy Updates", "description": "Change your content with one message." }
     ]
   },
   "testimonials": {
-    "title": "What Our Clients Say",
-    "testimonials": [
-      { "name": "Sarah", "quote": "My house has never looked better!" },
-      { "name": "Tom", "quote": "Reliable and friendly service every time." }
+    "title": "Happy Customers",
+    "quotes": [
+      { "name": "Sarah the Baker", "quote": "BizBud made my bakery look amazing online. Orders have doubled!", "image": "/images/sarah.png" },
+      { "name": "Mike's Mowing", "quote": "I didn't think I needed a website — now I get more calls than ever.", "image": "/images/mike.png" }
     ]
   },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": [
+      { "question": "How much does it cost?", "answer": "We charge a simple £250 for 12 months, or £25/month." },
+      { "question": "Can I update my site later?", "answer": "Yes! You can email us changes, or use your login portal." }
+    ]
+  },
+  "social": {
+    "facebook": "https://facebook.com/yourbizbud",
+    "instagram": "https://instagram.com/yourbizbud"
+  },
   "contact": {
-    "title": "Get in Touch",
-    "description": "Have questions or want to book a service? Drop us a message!",
-    "email": "contact@johnscleaning.com"
+    "title": "Get In Touch",
+    "description": "Ready to get started? Drop us a message and we'll set up your demo site.",
+    "email": "hello@bizbud.co.uk"
   }
 }

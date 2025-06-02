@@ -4,5 +4,7 @@
   "showAbout": true,
   "showServices": true,
   "showTestimonials": true,
-  "showContact": true
+  "showContact": true,
+  "showFeatures": true,
+  "showFAQ": true
 }

@@ -5,6 +5,9 @@ import AboutSection from "./components/AboutSection";
 import ServicesSection from "./components/ServicesSection";
 import TestimonialsSection from "./components/TestimonialsSection";
 import ContactSection from "./components/ContactSection";
+import FeaturesSection from "./components/FeaturesSection";
+import FAQSection from "./components/FAQSection";
+import Footer from "./components/Footer";
 
 function App() {
   const [content, setContent] = useState(null);
@@ -26,12 +29,16 @@ function App() {
 
   return (
     <main>
-      <Header siteTitle={content.siteTitle} logoUrl={content.logoUrl} />
+      <Header siteTitle={content.siteTitle} logoUrl={content.logoUrl} config={config} primaryColor={config.primaryColor} />
       {config.showHero && <HeroSection {...content.hero} primaryColor={config.primaryColor}/>}
       {config.showAbout && <AboutSection {...content.about} primaryColor={config.primaryColor}/>}
-      {config.showServices && <ServicesSection {...content.services} primaryColor={config.primaryColor}/>}
+      {config.showServices && <ServicesSection {...content.services} primaryColor={config.primaryColor} />}
+      {config.showFeatures && <FeaturesSection {...content.features} primaryColor={config.primaryColor}/>}
+      {config.showFAQ && <FAQSection {...content.faq} primaryColor={config.primaryColor}/>}
       {config.showTestimonials && <TestimonialsSection {...content.testimonials} primaryColor={config.primaryColor}/>}
       {config.showContact && <ContactSection {...content.contact} primaryColor={config.primaryColor}/>}
+      <Footer social={content.social} primaryColor={config.primaryColor} />
+
     </main>
   );
 }
