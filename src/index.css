@@ -1,3 +1,8 @@
+
+
+/* src/index.css */
+
+/* 1) Tailwind’s base + components + utilities */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,3 +10,94 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* 2) Our custom “pure‐CSS gradient animation” keyframes */
+@keyframes gradientAnim {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 3) Gradient classes for “green”, “blue”, and “teal” */
+.gradient-green {
+  background: linear-gradient(
+    -45deg,
+    #1e40af,   /* Tailwind green‐800 */
+    #10b981,   /* Tailwind green‐600 */
+    #34d399,   /* Tailwind green‐400 */
+    #6ee7b7    /* Tailwind green‐300 */
+  );
+  background-size: 400% 400%;
+  background-position: 0% 50%;
+  animation: gradientAnim 15s ease infinite;
+}
+
+.gradient-blue {
+  background: linear-gradient(
+    -45deg,
+    #10b981,   /* Tailwind blue‐800 */
+    #3b82f6,   /* Tailwind blue‐500 */
+    #60a5fa,   /* Tailwind blue‐400 */
+    #93c5fd    /* Tailwind blue‐300 */
+  );
+  background-size: 400% 400%;
+  background-position: 0% 50%;
+  animation: gradientAnim 15s ease infinite;
+}
+
+.gradient-teal {
+  background: linear-gradient(
+    -45deg,
+    #0f766e,   /* Tailwind teal‐800 */
+    #14b8a6,   /* Tailwind teal‐500 */
+    #2dd4bf,   /* Tailwind teal‐400 */
+    #5eead4    /* Tailwind teal‐300 */
+  );
+  background-size: 400% 400%;
+  background-position: 0% 50%;
+  animation: gradientAnim 15s ease infinite;
+}
+
+   .pattern-container {
+     position: relative;
+     overflow: hidden;
+   }
+
+   .pattern-container::before {
+     content: "";
+     position: absolute;
+     top: 0;
+     left: 0;
+     width: 200%;
+     height: 200%;
+     background-repeat: repeat;
+     background-image: var(--pattern-url);
+     z-index: 0;
+     transform: translate(0, 0);
+     animation: patternShift 20s linear infinite;
+   }
+
+
+/* Slowly drift the tiled background diagonally */
+@keyframes patternShift {
+  from {
+    background-position: 0px 0px;
+  }
+  to {
+    background-position: 200px 200px;
+  }
+}
+
+/* This class applies the infinite 60-second drift animation */
+.animate-patternShift {
+  animation: patternShift 60s linear infinite;
+}
+
+
+

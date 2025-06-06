@@ -1,35 +1,87 @@
 {
-  "siteTitle": "BizBud Template",
-  "logoUrl": "/logo.png",
+  "siteTitle": "The Biz Bud",
+  "logoUrl": "/images/logo.png",
   "hero": {
-    "headline": "Launch Your Business Online Today",
-    "subheadline": "Get a modern, mobile-friendly website tailored for your small business — fast and affordable.",
-    "ctaText": "Get Started",
-    "ctaLink": "#contact"
+    "headline": "Your Local Property Maintenance Experts",
+    "subheadline": "Reliable and affordable services including carpentry, flooring, painting, tiling, garden maintenance and more.",
+    "ctaText": "Get a Free Quote",
+    "ctaLink": "#contact",
+    "backgroundPatternName": "",
+    "backgroundImage": ""
+
   },
   "about": {
     "title": "About Us",
-    "description": "BizBud helps small businesses get online with beautiful, simple websites. Whether you're a baker, a cleaner, or a local service provider, we make your business look good online.",
-    "image": "/images/about.png"
+    "description": "At L.M.P Property Services, we take pride in offering a wide range of home improvement and maintenance solutions. Whether you need a single room refresh or a full property renovation, our skilled team is here to help. With free quotes, competitive pricing, and a commitment to quality, we’re your go-to local choice for all property work.",
+    "image": "/images/about.jpg"
   },
   "services": {
-    "title": "What We Offer",
+    "title": "Our Services",
     "items": [
-      { "title": "Professional Website", "description": "Sleek, responsive, and SEO-ready site tailored to your business." },
-      { "title": "Custom Domain Setup", "description": "Get your own .co.uk or .com with email address setup too." },
-      { "title": "Fast Turnaround", "description": "We'll have your site live within 48 hours of final approval." }
+      {
+        "title": "Carpentry",
+        "description": "Custom woodwork, framing, door installation, skirting boards, and bespoke shelving tailored to your needs.",
+        "iconName": "HammerIcon"
+      },
+      {
+        "title": "Tiling",
+        "description": "Wall and floor tiling for kitchens, bathrooms, and living areas using high-quality materials and precise installation.",
+        "iconName": "Squares2X2Icon"
+      },
+      {
+        "title": "Painting & Decorating",
+        "description": "Interior and exterior painting, feature walls, wallpapering, and decorative finishes to refresh any space.",
+        "iconName": "PaintBrushIcon"
+      },
+      {
+        "title": "Flat Pack Assembly",
+        "description": "Fast, reliable flat pack furniture assembly for homes and offices—everything from wardrobes to kitchen cabinets.",
+        "iconName": "PuzzlePieceIcon"
+      },
+      {
+        "title": "Flooring",
+        "description": "Expert installation of laminate, vinyl, hardwood, and carpet tile flooring with precise measurements and finishes.",
+        "iconName": "Square3Stack3DIcon"
+      },
+      {
+        "title": "Fascia & Soffits",
+        "description": "Repair and replacement of fascia boards, soffits, and guttering to improve exterior appearance and longevity.",
+        "iconName": "TruckIcon"
+      },
+      {
+        "title": "Plastering",
+        "description": "Smooth skim finishes, patch repairs, drylining, and full-room re-plastering delivered by experienced plasterers.",
+        "iconName": "RectangleStackIcon"
+      },
+      {
+        "title": "Garden Maintenance",
+        "description": "General tidy-ups, garden waste removal, fence repairs, and lawn care to keep your outdoor space looking its best.",
+        "iconName": "LeafIcon"
+      }
     ]
   },
   "features": {
     "title": "Why Choose Us?",
     "items": [
-      { "icon": "RocketLaunchIcon", "title": "Fast Setup", "description": "From draft to live in under 2 days." },
-      { "icon": "DevicePhoneMobileIcon", "title": "Mobile First", "description": "Looks perfect on any device." },
-      { "icon": "CogIcon", "title": "Easy Updates", "description": "Change your content with one message." }
+      {
+        "iconName": "ShieldCheckIcon",
+        "title": "Fully Insured & Qualified",
+        "description": "All work is completed by experienced professionals backed by public liability insurance and verified training."
+      },
+      {
+        "iconName": "CurrencyPoundIcon",
+        "title": "Free, No-Obligation Quotes",
+        "description": "We provide clear, upfront pricing with no hidden fees. You know exactly what to expect before work begins."
+      },
+      {
+        "iconName": "CheckBadgeIcon",
+        "title": "Commitment to Quality",
+        "description": "Our team takes pride in every project—attention to detail, reliable timelines, and a clean finish every time."
+      }
     ]
   },
   "gallery": {
-    "title": "Gallery",
+    "title": "Our Work Gallery",
     "images": [
       "/images/gallery/dog1.jpg",
       "/images/gallery/dog2.jpg",
@@ -40,26 +92,54 @@
     ]
   },
   "testimonials": {
-    "title": "Happy Customers",
+    "title": "What Our Clients Say",
     "quotes": [
-      { "name": "Sarah the Baker", "quote": "BizBud made my bakery look amazing online. Orders have doubled!", "image": "/images/sarah.png" },
-      { "name": "Mike's Mowing", "quote": "I didn't think I needed a website — now I get more calls than ever.", "image": "/images/mike.png" }
+      {
+        "name": "Samantha L.",
+        "quote": "Quick, tidy, and reasonably priced. I’ve used L.M.P for painting and carpentry, and they’ve been excellent every time.",
+        "image": "/images/testimonial1.jpg"
+      },
+      {
+        "name": "James R.",
+        "quote": "They tiled our kitchen and fitted new skirting—top-class finish and very friendly throughout. Highly recommend!",
+        "image": "/images/testimonial2.jpg"
+      },
+      {
+        "name": "Olivia K.",
+        "quote": "Wonderful service from start to finish. From the free quote to the final check, L.M.P made our home renovation stress-free.",
+        "image": "/images/testimonial3.jpg"
+      }
     ]
   },
   "faq": {
     "title": "Frequently Asked Questions",
     "items": [
-      { "question": "How much does it cost?", "answer": "We charge a simple £250 for 12 months, or £25/month." },
-      { "question": "Can I update my site later?", "answer": "Yes! You can email us changes, or use your login portal." }
+      {
+        "question": "Do you offer free quotes?",
+        "answer": "Yes. We visit your property, assess the work needed, and provide a detailed, no-obligation quote—always free of charge."
+      },
+      {
+        "question": "What areas do you cover?",
+        "answer": "We serve Bedfordshire and the surrounding counties within a 30-mile radius. If you’re outside that area, just get in touch to check availability."
+      },
+      {
+        "question": "Can you handle multiple small jobs?",
+        "answer": "Absolutely. We frequently take on smaller tasks—call-outs, fixes, or one-off jobs—and we’ll bundle them into a single visit to save you time."
+      },
+      {
+        "question": "Are you fully insured?",
+        "answer": "Yes. All of our craftsmen and subcontractors carry full public liability insurance, so you have peace of mind on every job."
+      }
     ]
   },
   "social": {
-    "facebook": "https://facebook.com/yourbizbud",
-    "instagram": "https://instagram.com/yourbizbud"
+    "facebook": "https://facebook.com/lmppropertyservices",
+    "instagram": "https://instagram.com/lmppropertyservices"
   },
   "contact": {
-    "title": "Get In Touch",
-    "description": "Ready to get started? Drop us a message and we'll set up your demo site.",
-    "email": "hello@bizbud.co.uk"
+    "title": "Request a Quote",
+    "description": "Call, message, or email us today to discuss your project. We’ll get back to you within 24 hours with a free estimate.",
+    "email": "contact@lmppropertyservices.co.uk",
+    "phone": "07359 663974"
   }
 }

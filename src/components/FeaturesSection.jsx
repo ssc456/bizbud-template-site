@@ -1,10 +1,5 @@
-import { RocketLaunchIcon, DevicePhoneMobileIcon, CogIcon } from '@heroicons/react/24/outline';
-
-const iconMap = {
-  RocketLaunchIcon,
-  DevicePhoneMobileIcon,
-  CogIcon
-};
+import { motion } from "framer-motion";
+import * as HeroIcons from "@heroicons/react/24/solid";
 
 function FeaturesSection({ title, items, primaryColor }) {
   return (
@@ -13,13 +8,18 @@ function FeaturesSection({ title, items, primaryColor }) {
         <h2 className="text-3xl font-bold mb-10">{title}</h2>
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
           {items.map((feature, index) => {
-            const Icon = iconMap[feature.icon] || CogIcon;
+            const IconComponent =
+              HeroIcons[feature.iconName] || HeroIcons.CogIcon;
             return (
-              <div key={index} className="bg-gray-50 p-6 rounded-lg shadow hover:shadow-lg transition text-left">
-                <Icon className={`h-8 w-8 text-${primaryColor}-500 mb-4`} />
+              <motion.div
+                key={index}
+                className="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer"
+                whileHover={{ scale: 1.025 }}
+              >
+                <IconComponent className={`h-10 w-10 text-${primaryColor}-500 mb-4`} />
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
-              </div>
+              </motion.div>
             );
           })}
         </div>
