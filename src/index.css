@@ -64,6 +64,32 @@ html {
   animation: gradientAnim 15s ease infinite;
 }
 
+.gradient-orange {
+  background: linear-gradient(
+    -45deg,
+    #0f766e,   /* Tailwind orange‐800 */
+    #ea580c,   /* Tailwind orange‐600 */
+    #f97316,   /* Tailwind orange‐500 */
+    #fb923c    /* Tailwind orange‐400 */
+  );
+  background-size: 400% 400%;
+  background-position: 0% 50%;
+  animation: gradientAnim 15s ease infinite;
+}
+
+.gradient-pink {
+  background: linear-gradient(
+    -45deg,
+    #ea580c,   /* Tailwind pink‐800 */
+    #ec4899,   /* Tailwind pink‐600 */
+    #f472b6,   /* Tailwind pink‐500 */
+    #f9a8d4    /* Tailwind pink‐400 */
+  );
+  background-size: 400% 400%;
+  background-position: 0% 50%;
+  animation: gradientAnim 15s ease infinite;
+}
+
    .pattern-container {
      position: relative;
      overflow: hidden;

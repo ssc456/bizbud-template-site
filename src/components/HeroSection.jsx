@@ -26,7 +26,7 @@ function HeroSection({
       ? `pattern-container bg-${primaryColor}-800 bg-repeat`
       : "";
 
-  const gradientColors = ["green", "blue", "teal"];
+  const gradientColors = ["green", "blue", "teal", "purple", "pink", "red", "orange"];
   const gradientClasses =
     !hasImage && !hasPattern && gradientColors.includes(primaryColor)
       ? `gradient-${primaryColor}`
