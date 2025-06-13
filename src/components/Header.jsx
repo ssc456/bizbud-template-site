@@ -1,95 +1,85 @@
-import { useState, useEffect } from "react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
+// src/components/Header.jsx
+import { useState, useEffect } from 'react'
+import { Menu, X } from 'lucide-react'
 
 function Header({ siteTitle, logoUrl, config, primaryColor }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
-  // Once the user scrolls down 20px, we switch header to solid white
-  // useEffect(() => {
-  //   const handleScroll = () => {
-  //     setScrolled(window.scrollY > 20);
-  //   };
-  //   window.addEventListener("scroll", handleScroll);
-  //   return () => window.removeEventListener("scroll", handleScroll);
-  // }, []);
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const navLinks = [
-    { id: "about", label: "About", enabled: config.showAbout },
-    { id: "services", label: "Services", enabled: config.showServices },
-    { id: "features", label: "Features", enabled: config.showFeatures },
-    { id: "testimonials", label: "Testimonials", enabled: config.showTestimonials },
-    { id: "faq", label: "FAQ", enabled: config.showFAQ },
-    { id: "contact", label: "Contact", enabled: config.showContact },
-  ];
+    { id: 'about', label: 'About', enabled: config.showAbout },
+    { id: 'services', label: 'Services', enabled: config.showServices },
+    { id: 'features', label: 'Features', enabled: config.showFeatures },
+    { id: 'gallery', label: 'Gallery', enabled: config.showGallery },
+    { id: 'testimonials', label: 'Testimonials', enabled: config.showTestimonials },
+    { id: 'faq', label: 'FAQ', enabled: config.showFAQ },
+    { id: 'contact', label: 'Contact', enabled: config.showContact }
+  ]
 
-  // If scrolled === false, we want a semi-transparent green overlay (so text remains white on green).
-  // Once scrolled === true, swap to a solid white header.
-  const headerBgClass = scrolled
-    ? "bg-white shadow-md"                        // after scroll, solid white
-    : `bg-${primaryColor}-800 bg-opacity-90`;      // at top, dark-green overlay
+  const colorClasses = {
+    pink: { bg: 'bg-pink-600', text: 'text-pink-600', hover: 'hover:text-pink-600' },
+    purple: { bg: 'bg-purple-600', text: 'text-purple-600', hover: 'hover:text-purple-600' },
+    blue: { bg: 'bg-blue-600', text: 'text-blue-600', hover: 'hover:text-blue-600' },
+    green: { bg: 'bg-green-600', text: 'text-green-600', hover: 'hover:text-green-600' }
+  }[primaryColor] ?? colorClasses.pink
+
+  const handleNavClick = (e, id) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    const el = document.getElementById(id)
+    if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' })
+  }
 
   return (
-    <header className={`${headerBgClass} fixed w-full top-0 z-50 transition-colors`}>
-      <div className="max-w-6xl mx-auto flex justify-between items-center py-4 px-6">
-        <div className="flex items-center space-x-4">
-          <img src={logoUrl} alt="Logo" className="h-16 w-auto max-h-20" />
-          <h1 className={`text-2xl font-bold hidden sm:block ${scrolled ? "text-gray-900" : "text-white"}`}>
-            {siteTitle}
-          </h1>
-        </div>
-
-        <div className="sm:hidden">
-          <button onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? (
-              <XMarkIcon className={`h-6 w-6 ${scrolled ? "text-gray-700" : "text-white"}`} />
-            ) : (
-              <Bars3Icon className={`h-6 w-6 ${scrolled ? "text-gray-700" : "text-white"}`} />
-            )}
-          </button>
-        </div>
-
-        <nav className="hidden sm:flex space-x-6">
-          {navLinks.map(
-            (link) =>
-              link.enabled && (
-                <a
-                  key={link.id}
-                  href={`#${link.id}`}
-                  className={`transition text-base ${
-                    scrolled
-                      ? `text-gray-600 hover:text-${primaryColor}-600`
-                      : `text-white hover:text-${primaryColor}-300`
-                  }`}
-                >
-                  {link.label}
+    <>
+      <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100' : 'bg-transparent'}`}>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <div className='flex justify-between items-center h-20'>
+            <div className='flex items-center space-x-3'>
+              {logoUrl && <img src={logoUrl} alt='Logo' className='h-10 w-auto sm:h-12 rounded-lg shadow-sm' onError={e => (e.target.style.display = 'none')} />}
+              <h1 className={`text-xl sm:text-2xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>{siteTitle}</h1>
+            </div>
+            <nav className='hidden lg:flex items-center space-x-8'>
+              {navLinks.map(l => l.enabled && (
+                <a key={l.id} href={`#${l.id}`} onClick={e => handleNavClick(e, l.id)} className={`text-sm font-medium transition-all hover:scale-105 ${scrolled ? `text-gray-700 ${colorClasses.hover}` : 'text-white hover:text-gray-200'}`}>
+                  {l.label}
                 </a>
-              )
-          )}
-        </nav>
-      </div>
-
+              ))}
+              <a href='#contact' onClick={e => handleNavClick(e, 'contact')} className={`px-6 py-2 rounded-full font-medium hover:scale-105 transition-all ${scrolled ? `${colorClasses.bg} text-white hover:opacity-90` : 'bg-white text-gray-900 hover:bg-gray-100'}`}>
+                Book Now
+              </a>
+            </nav>
+            <button onClick={() => setMenuOpen(!menuOpen)} className={`lg:hidden p-2 rounded-lg ${scrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'}`}>
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+      </header>
       {menuOpen && (
-        <div className="sm:hidden px-6 pb-4 bg-white shadow-md">
-          <nav className="flex flex-col space-y-3">
-            {navLinks.map(
-              (link) =>
-                link.enabled && (
-                  <a
-                    key={link.id}
-                    href={`#${link.id}`}
-                    className={`text-gray-600 hover:text-${primaryColor}-600 transition text-base`}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {link.label}
-                  </a>
-                )
-            )}
-          </nav>
+        <div className='fixed inset-0 z-40 lg:hidden'>
+          <div className='absolute inset-0 bg-black/50 backdrop-blur-sm' onClick={() => setMenuOpen(false)} />
+          <div className='absolute top-20 left-0 right-0 bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-100'>
+            <nav className='px-4 py-6 space-y-4'>
+              {navLinks.map(l => l.enabled && (
+                <a key={l.id} href={`#${l.id}`} onClick={e => handleNavClick(e, l.id)} className={`block py-3 text-lg font-medium text-gray-700 ${colorClasses.hover}`}>
+                  {l.label}
+                </a>
+              ))}
+              <a href='#contact' onClick={e => handleNavClick(e, 'contact')} className={`block w-full text-center py-3 mt-6 rounded-xl font-medium ${colorClasses.bg} text-white hover:opacity-90`}>
+                Book Now
+              </a>
+            </nav>
+          </div>
         </div>
       )}
-    </header>
-  );
+    </>
+  )
 }
 
-export default Header;
+export default Header

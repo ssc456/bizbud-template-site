@@ -1,62 +1,96 @@
 {
-  "siteTitle": "The Biz Bud",
+  "siteTitle": "Scott's Dogs",
   "logoUrl": "/images/logo.png",
   "hero": {
-    "headline": "Your Local Property Maintenance Experts",
-    "subheadline": "Reliable and affordable services including carpentry, flooring, painting, tiling, garden maintenance and more.",
-    "ctaText": "Get a Free Quote",
-    "ctaLink": "#contact",
-    "backgroundPatternName": "",
-    "backgroundImage": ""
-
-  },
+    "headline": "Professional Dog Walking & Pet Care",
+    "subheadline": "Keeping tails wagging across town since 2018",
+    "ctaText": "Book a Walk",
+    "ctaLink": "#contact"
+    },
   "about": {
-    "title": "About Us",
-    "description": "At L.M.P Property Services, we take pride in offering a wide range of home improvement and maintenance solutions. Whether you need a single room refresh or a full property renovation, our skilled team is here to help. With free quotes, competitive pricing, and a commitment to quality, we’re your go-to local choice for all property work.",
-    "image": "/images/about.jpg"
+    "title": "About Scott's Dogs",
+    "description": "I've always had a special connection with dogs and turned my passion into a profession. With over 5 years of experience, I provide personalized dog walking services that keep your furry friends happy, healthy, and exercised. Each walking session is tailored to your dog's energy level, age, and personality. Your pet's safety and wellbeing are my top priorities, and I treat every dog as if they were my own.",
+    "image": "/images/dog1.jpg"
   },
   "services": {
     "title": "Our Services",
+    "description": "Flexible dog walking options to suit your pet's needs and your schedule",
+    "layoutStyle": "interactive",
     "items": [
       {
-        "title": "Carpentry",
-        "description": "Custom woodwork, framing, door installation, skirting boards, and bespoke shelving tailored to your needs.",
-        "iconName": "HammerIcon"
+        "title": "Solo Walk",
+        "description": "One-on-one attention for dogs who need special care or prefer their own space.",
+        "iconName": "Paw",
+        "details": [
+          "30-minute dedicated walk",
+          "Full attention to your dog only",
+          "Route tailored to your dog's preferences",
+          "Text updates with photos",
+          "Fresh water provided",
+          "Price: £15 per walk"
+        ]
       },
       {
-        "title": "Tiling",
-        "description": "Wall and floor tiling for kitchens, bathrooms, and living areas using high-quality materials and precise installation.",
-        "iconName": "Squares2X2Icon"
+        "title": "Group Walk",
+        "description": "Social walks with up to 4 compatible dogs for fun and friendship.",
+        "iconName": "Users",
+        "details": [
+          "45-minute group adventure",
+          "Socialization with other friendly dogs",
+          "Supervised play time",
+          "Text updates with photos",
+          "Fresh water provided",
+          "Price: £12 per walk"
+        ]
       },
       {
-        "title": "Painting & Decorating",
-        "description": "Interior and exterior painting, feature walls, wallpapering, and decorative finishes to refresh any space.",
-        "iconName": "PaintBrushIcon"
+        "title": "Puppy Package",
+        "description": "Gentle care for younger dogs with bathroom breaks and basic training.",
+        "iconName": "Heart",
+        "details": [
+          "20-minute visits",
+          "Toilet breaks & playtime",
+          "Basic command reinforcement",
+          "Perfect for puppies under 1 year",
+          "Text updates with photos",
+          "Price: £10 per visit"
+        ]
       },
       {
-        "title": "Flat Pack Assembly",
-        "description": "Fast, reliable flat pack furniture assembly for homes and offices—everything from wardrobes to kitchen cabinets.",
-        "iconName": "PuzzlePieceIcon"
+        "title": "Adventure Walk",
+        "description": "Extended outdoor experience for high-energy dogs who need extra exercise.",
+        "iconName": "Mountain",
+        "details": [
+          "60-minute extended walk",
+          "Trails and park exploration",
+          "Ideal for high-energy breeds",
+          "Text updates with photos",
+          "Fresh water provided",
+          "Price: £20 per walk"
+        ]
       },
       {
-        "title": "Flooring",
-        "description": "Expert installation of laminate, vinyl, hardwood, and carpet tile flooring with precise measurements and finishes.",
-        "iconName": "Square3Stack3DIcon"
+        "title": "Training Add-On",
+        "description": "Reinforce basic commands and work on specific behaviors during walks.",
+        "iconName": "GraduationCap",
+        "details": [
+          "Available with any walk package",
+          "Basic command practice",
+          "Positive reinforcement methods",
+          "Price: £5 extra per session"
+        ]
       },
       {
-        "title": "Fascia & Soffits",
-        "description": "Repair and replacement of fascia boards, soffits, and guttering to improve exterior appearance and longevity.",
-        "iconName": "TruckIcon"
-      },
-      {
-        "title": "Plastering",
-        "description": "Smooth skim finishes, patch repairs, drylining, and full-room re-plastering delivered by experienced plasterers.",
-        "iconName": "RectangleStackIcon"
-      },
-      {
-        "title": "Garden Maintenance",
-        "description": "General tidy-ups, garden waste removal, fence repairs, and lawn care to keep your outdoor space looking its best.",
-        "iconName": "LeafIcon"
+        "title": "Home Visit Service",
+        "description": "Quick visit to your home to feed, provide fresh water, and let your dog out.",
+        "iconName": "Home",
+        "details": [
+          "15-minute home visit",
+          "Feeding and fresh water",
+          "Brief toilet break",
+          "Perfect for busy workdays",
+          "Price: £8 per visit"
+        ]
       }
     ]
   },
@@ -64,50 +98,79 @@
     "title": "Why Choose Us?",
     "items": [
       {
-        "iconName": "ShieldCheckIcon",
-        "title": "Fully Insured & Qualified",
-        "description": "All work is completed by experienced professionals backed by public liability insurance and verified training."
+        "iconName": "Shield",
+        "title": "Fully Insured & DBS Checked",
+        "description": "Your pets are protected with comprehensive insurance coverage and you can trust our background-checked service."
       },
       {
-        "iconName": "CurrencyPoundIcon",
-        "title": "Free, No-Obligation Quotes",
-        "description": "We provide clear, upfront pricing with no hidden fees. You know exactly what to expect before work begins."
+        "iconName": "Clock",
+        "title": "Reliable & Punctual",
+        "description": "Count on consistent walk times with real-time updates and photos of your happy pup during their adventure."
       },
       {
-        "iconName": "CheckBadgeIcon",
-        "title": "Commitment to Quality",
-        "description": "Our team takes pride in every project—attention to detail, reliable timelines, and a clean finish every time."
+        "iconName": "Heart",
+        "title": "Passionate About Pets",
+        "description": "Every dog receives personalized attention, treats (with permission), and plenty of affection from our experienced handlers."
       }
     ]
   },
   "gallery": {
-    "title": "Our Work Gallery",
+    "title": "Happy Dogs",
+    "subtitle": "Swipe to see our furry friends enjoying their walks",
+    "layout": "masonry",
+    "maxImages": 9,
+    "viewAllLink": "/gallery",
     "images": [
-      "/images/gallery/dog1.jpg",
-      "/images/gallery/dog2.jpg",
-      "/images/gallery/dog3.jpg",
-      "/images/gallery/dog4.jpg",
-      "/images/gallery/dog5.jpg",
-      "/images/gallery/dog6.jpg"
+      {
+        "src": "/images/gallery/dog1.jpg",
+        "alt": "Golden Retriever running in the park",
+        "title": "Park Adventures",
+        "description": "Max enjoying his afternoon run"
+      },
+      {
+        "src": "/images/gallery/dog2.jpg",
+        "alt": "Border Collie with a ball",
+        "title": "Playtime",
+        "description": "Bella loves her fetch sessions"
+      },
+      {
+        "src": "/images/gallery/dog3.jpg",
+        "alt": "Beagle exploring woodland trail",
+        "title": "Trail Exploration",
+        "description": "Charlie discovering new scents"
+      },
+      {
+        "src": "/images/gallery/dog4.jpg",
+        "alt": "Group of dogs on a walk",
+        "title": "The Pack",
+        "description": "Friends enjoying a group walk"
+      },
+      {
+        "src": "/images/gallery/dog5.jpg",
+        "alt": "Puppy learning basic commands",
+        "title": "Training Time",
+        "description": "Luna mastering her sit-stay"
+      },
+      {
+        "src": "/images/gallery/dog6.jpg",
+        "alt": "Dogs playing in an open field",
+        "title": "Freedom Run",
+        "description": "Supervised off-leash play area"
+      }
     ]
   },
   "testimonials": {
-    "title": "What Our Clients Say",
+    "title": "What Pet Parents Say",
     "quotes": [
       {
-        "name": "Samantha L.",
-        "quote": "Quick, tidy, and reasonably priced. I’ve used L.M.P for painting and carpentry, and they’ve been excellent every time.",
-        "image": "/images/testimonial1.jpg"
+        "name": "Emma R.",
+        "quote": "My hyperactive Lab has never been calmer since Scott started taking him on adventure walks. Worth every penny!",
+        "image": "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100"
       },
       {
-        "name": "James R.",
-        "quote": "They tiled our kitchen and fitted new skirting—top-class finish and very friendly throughout. Highly recommend!",
-        "image": "/images/testimonial2.jpg"
-      },
-      {
-        "name": "Olivia K.",
-        "quote": "Wonderful service from start to finish. From the free quote to the final check, L.M.P made our home renovation stress-free.",
-        "image": "/images/testimonial3.jpg"
+        "name": "James T.",
+        "quote": "Scott is amazing with my anxious rescue dog. The photo updates during walks give me such peace of mind when I'm at work.",
+        "image": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100"
       }
     ]
   },
@@ -115,31 +178,42 @@
     "title": "Frequently Asked Questions",
     "items": [
       {
-        "question": "Do you offer free quotes?",
-        "answer": "Yes. We visit your property, assess the work needed, and provide a detailed, no-obligation quote—always free of charge."
+        "question": "Do you walk dogs in all weather conditions?",
+        "answer": "Yes, we walk in most weather conditions except severe storms or extreme heat. For bad weather days, we offer shorter walks or indoor play sessions as alternatives."
+      },
+      {
+        "question": "How many dogs do you walk at once?",
+        "answer": "For group walks, we maintain a maximum of 4 dogs per walker to ensure proper supervision and safety. Solo walks are always one-on-one."
       },
       {
         "question": "What areas do you cover?",
-        "answer": "We serve Bedfordshire and the surrounding counties within a 30-mile radius. If you’re outside that area, just get in touch to check availability."
+        "answer": "We currently serve the entire town and surrounding villages within a 5-mile radius. Contact us to confirm if you're within our service area."
       },
       {
-        "question": "Can you handle multiple small jobs?",
-        "answer": "Absolutely. We frequently take on smaller tasks—call-outs, fixes, or one-off jobs—and we’ll bundle them into a single visit to save you time."
-      },
-      {
-        "question": "Are you fully insured?",
-        "answer": "Yes. All of our craftsmen and subcontractors carry full public liability insurance, so you have peace of mind on every job."
+        "question": "What happens if my dog doesn't get along with others?",
+        "answer": "We offer solo walks specifically for dogs who prefer their own space or don't socialize well with other dogs."
       }
     ]
   },
   "social": {
-    "facebook": "https://facebook.com/lmppropertyservices",
-    "instagram": "https://instagram.com/lmppropertyservices"
+    "facebook": "https://facebook.com/scottsdogs",
+    "instagram": "https://instagram.com/scottsdogswalking"
   },
   "contact": {
-    "title": "Request a Quote",
-    "description": "Call, message, or email us today to discuss your project. We’ll get back to you within 24 hours with a free estimate.",
-    "email": "contact@lmppropertyservices.co.uk",
-    "phone": "07359 663974"
+    "title": "Book Your Dog's Next Adventure",
+    "description": "Ready to give your furry friend the exercise and attention they deserve? Contact us to schedule a meet-and-greet or book your first walk.",
+    "email": "woof@scottsdogs.co.uk",
+    "phone": "07700 900123"
+  },
+  "config": {
+    "primaryColor": "blue",
+    "showHero": true,
+    "showAbout": true,
+    "showServices": true,
+    "showTestimonials": true,
+    "showGallery": true,
+    "showContact": true,
+    "showFeatures": true,
+    "showFAQ": true
   }
 }
