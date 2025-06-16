@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { extractSiteId } from '../utils/siteId';
 
 export default function AdminDashboard() {
   const [clientData, setClientData] = useState(null);
@@ -7,22 +8,7 @@ export default function AdminDashboard() {
   const [siteId, setSiteId] = useState('');
   
   useEffect(() => {
-    // Extract site ID
-    const hostname = window.location.hostname;
-    const urlParams = new URLSearchParams(window.location.search);
-    const siteParam = urlParams.get('site');
-    
-    let extractedSiteId;
-    if (hostname.includes('.') && !hostname.startsWith('localhost') && !hostname.startsWith('127.0.0.1')) {
-      const subdomain = hostname.split('.')[0];
-      // Extract the base name (before any potential Vercel additions)
-      extractedSiteId = subdomain.includes('-') ? 
-        subdomain.substring(0, subdomain.lastIndexOf('-')) : 
-        subdomain;
-    } else {
-      extractedSiteId = siteParam || 'default';
-    }
-    
+    const extractedSiteId = extractSiteId();
     setSiteId(extractedSiteId);
     
     // Fetch client data
@@ -35,6 +21,7 @@ export default function AdminDashboard() {
           return;
         }
         
+        console.log('Fetching data for site:', extractedSiteId);
         const response = await fetch(`/api/get-client-data?siteId=${extractedSiteId}`);
         if (!response.ok) {
           throw new Error('Failed to load site data');
@@ -43,6 +30,7 @@ export default function AdminDashboard() {
         const data = await response.json();
         setClientData(data);
       } catch (err) {
+        console.error('Dashboard data error:', err);
         setError(err.message);
       } finally {
         setLoading(false);

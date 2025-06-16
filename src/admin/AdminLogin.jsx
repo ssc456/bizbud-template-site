@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { extractSiteId } from '../utils/siteId';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('');
@@ -6,26 +7,8 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Extract site ID from hostname or URL params
-  useState(() => {
-    const hostname = window.location.hostname;
-    const urlParams = new URLSearchParams(window.location.search);
-    const siteParam = urlParams.get('site');
-    
-    let extractedSiteId;
-    if (hostname.includes('.') && !hostname.startsWith('localhost') && !hostname.startsWith('127.0.0.1')) {
-      // Get base site name from Vercel URL (handles third-site-umber.vercel.app → third-site)
-      const subdomain = hostname.split('.')[0];
-      // Extract the base name (before any potential Vercel additions)
-      extractedSiteId = subdomain.includes('-') ? 
-        subdomain.substring(0, subdomain.lastIndexOf('-')) : 
-        subdomain;
-    } else {
-      // For localhost
-      extractedSiteId = siteParam || 'default';
-    }
-    
-    setSiteId(extractedSiteId);
+  useEffect(() => {
+    setSiteId(extractSiteId());
   }, []);
   
   async function handleSubmit(e) {
@@ -34,6 +17,8 @@ export default function AdminLogin() {
     setError('');
     
     try {
+      console.log('Submitting login for site:', siteId);
+      
       const response = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,6 +26,7 @@ export default function AdminLogin() {
       });
       
       const data = await response.json();
+      console.log('Auth response:', data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
@@ -52,6 +38,7 @@ export default function AdminLogin() {
       // Redirect to admin dashboard
       window.location.href = '/admin/dashboard';
     } catch (error) {
+      console.error('Auth error:', error);
       setError(error.message);
     } finally {
       setLoading(false);

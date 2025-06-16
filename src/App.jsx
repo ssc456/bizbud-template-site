@@ -14,6 +14,7 @@ import ContactSection from './components/ContactSection'
 import Footer from './components/Footer'
 import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
+import { extractSiteId } from './utils/siteId';
 
 function App() {
   const [content, setContent] = useState(null)
@@ -22,24 +23,10 @@ function App() {
   const [siteId, setSiteId] = useState('')
 
   useEffect(() => {
-    // Extract site ID from hostname (subdomain)
-    const hostname = window.location.hostname;
-    
-    // For local development, use a query parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const siteParam = urlParams.get('site');
-    
-    // Use subdomain as siteId, or query param for testing, or default
-    let extractedSiteId;
-    if (hostname.includes('.') && !hostname.startsWith('localhost') && !hostname.startsWith('127.0.0.1')) {
-      // Extract subdomain: "client1.example.com" -> "client1"
-      extractedSiteId = hostname.split('.')[0];
-    } else {
-      // For localhost, use query param or default
-      extractedSiteId = siteParam || 'default';
-    }
-    
+    const extractedSiteId = extractSiteId();
     setSiteId(extractedSiteId);
+    
+    console.log('App loading data for site ID:', extractedSiteId);
 
     // First try API endpoint with Redis data
     fetch(`/api/get-client-data?siteId=${extractedSiteId}`)
@@ -82,7 +69,7 @@ function App() {
           });
       });
   }, []);
-
+  
   if (loading) {
     return (
       <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50'>
