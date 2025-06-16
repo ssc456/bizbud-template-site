@@ -1,6 +1,7 @@
 // src/App.jsx
 import { useEffect, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header'
 import HeroSection from './components/HeroSection'
 import AboutSection from './components/AboutSection'
@@ -11,31 +12,75 @@ import TestimonialsSection from './components/TestimonialsSection'
 import FAQSection from './components/FAQSection'
 import ContactSection from './components/ContactSection'
 import Footer from './components/Footer'
+import AdminLogin from './admin/AdminLogin';
 
 function App() {
   const [content, setContent] = useState(null)
   const [config, setConfig] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [siteId, setSiteId] = useState('')
 
   useEffect(() => {
-    Promise.all([fetch('/client.json').then(r => r.json())])
-      .then(([client, cfg]) => {
-        setContent(client)
+    // Extract site ID from hostname (subdomain)
+    const hostname = window.location.hostname;
+    
+    // For local development, use a query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const siteParam = urlParams.get('site');
+    
+    // Use subdomain as siteId, or query param for testing, or default
+    let extractedSiteId;
+    if (hostname.includes('.') && !hostname.startsWith('localhost') && !hostname.startsWith('127.0.0.1')) {
+      // Extract subdomain: "client1.example.com" -> "client1"
+      extractedSiteId = hostname.split('.')[0];
+    } else {
+      // For localhost, use query param or default
+      extractedSiteId = siteParam || 'default';
+    }
+    
+    setSiteId(extractedSiteId);
 
-        if (client.config) {
-          setConfig(client.config)
+    // First try API endpoint with Redis data
+    fetch(`/api/get-client-data?siteId=${extractedSiteId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Remote data not available');
         }
-        setLoading(false)
-
-        // Set the page title from client.json
-        if (client.siteTitle) {
-          document.title = client.siteTitle;
+        return response.json();
+      })
+      .then(data => {
+        setContent(data);
+        if (data.config) {
+          setConfig(data.config);
+        }
+        setLoading(false);
+        
+        if (data.siteTitle) {
+          document.title = data.siteTitle;
         }
       })
-      .catch(console.error)
-
-
-  }, [])
+      .catch(error => {
+        console.warn('API data fetch failed, falling back to local file:', error);
+        // Fall back to local client.json
+        fetch('/client.json')
+          .then(r => r.json())
+          .then(client => {
+            setContent(client);
+            if (client.config) {
+              setConfig(client.config);
+            }
+            setLoading(false);
+            
+            if (client.siteTitle) {
+              document.title = client.siteTitle;
+            }
+          })
+          .catch(err => {
+            console.error('Failed to load content:', err);
+            setLoading(false);
+          });
+      });
+  }, []);
 
   if (loading) {
     return (
@@ -51,22 +96,29 @@ function App() {
   if (!content || !config) return null
 
   return (
-    <div className='min-h-screen bg-white scroll-smooth'>
-      <Header siteTitle={content.siteTitle} logoUrl={content.logoUrl} config={config} primaryColor={config.primaryColor} />
-      <AnimatePresence mode='wait'>
-        {config.showHero && (
-          <HeroSection key='hero' {...content.hero} primaryColor={config.primaryColor} secondaryColor={config.secondaryColor} animations={config.animations} />
-        )}
-        {config.showAbout && <AboutSection key='about' {...content.about} primaryColor={config.primaryColor} />}
-        {config.showServices && <ServicesSection key='services' {...content.services} primaryColor={config.primaryColor} secondaryColor={config.secondaryColor} />}
-        {config.showFeatures && <FeaturesSection key='features' {...content.features} primaryColor={config.primaryColor} />}
-        {config.showGallery && <GallerySection key='gallery' {...content.gallery} primaryColor={config.primaryColor} />}
-        {config.showTestimonials && <TestimonialsSection key='testimonials' {...content.testimonials} primaryColor={config.primaryColor} />}
-        {config.showFAQ && <FAQSection key='faq' {...content.faq} primaryColor={config.primaryColor} />}
-        {config.showContact && <ContactSection key='contact' {...content.contact} primaryColor={config.primaryColor} />}
-      </AnimatePresence>
-      <Footer social={content.social} primaryColor={config.primaryColor} siteTitle={content.siteTitle} />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/" element={
+          <div className='min-h-screen bg-white scroll-smooth'>
+            <Header siteTitle={content.siteTitle} logoUrl={content.logoUrl} config={config} primaryColor={config.primaryColor} />
+            <AnimatePresence mode='wait'>
+              {config.showHero && (
+                <HeroSection key='hero' {...content.hero} primaryColor={config.primaryColor} secondaryColor={config.secondaryColor} animations={config.animations} />
+              )}
+              {config.showAbout && <AboutSection key='about' {...content.about} primaryColor={config.primaryColor} />}
+              {config.showServices && <ServicesSection key='services' {...content.services} primaryColor={config.primaryColor} secondaryColor={config.secondaryColor} />}
+              {config.showFeatures && <FeaturesSection key='features' {...content.features} primaryColor={config.primaryColor} />}
+              {config.showGallery && <GallerySection key='gallery' {...content.gallery} primaryColor={config.primaryColor} />}
+              {config.showTestimonials && <TestimonialsSection key='testimonials' {...content.testimonials} primaryColor={config.primaryColor} />}
+              {config.showFAQ && <FAQSection key='faq' {...content.faq} primaryColor={config.primaryColor} />}
+              {config.showContact && <ContactSection key='contact' {...content.contact} primaryColor={config.primaryColor} />}
+            </AnimatePresence>
+            <Footer social={content.social} primaryColor={config.primaryColor} siteTitle={content.siteTitle} />
+          </div>
+        } />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
