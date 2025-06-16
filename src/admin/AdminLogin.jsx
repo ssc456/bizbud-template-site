@@ -14,8 +14,12 @@ export default function AdminLogin() {
     
     let extractedSiteId;
     if (hostname.includes('.') && !hostname.startsWith('localhost') && !hostname.startsWith('127.0.0.1')) {
-      // Get from subdomain
-      extractedSiteId = hostname.split('.')[0];
+      // Get base site name from Vercel URL (handles third-site-umber.vercel.app → third-site)
+      const subdomain = hostname.split('.')[0];
+      // Extract the base name (before any potential Vercel additions)
+      extractedSiteId = subdomain.includes('-') ? 
+        subdomain.substring(0, subdomain.lastIndexOf('-')) : 
+        subdomain;
     } else {
       // For localhost
       extractedSiteId = siteParam || 'default';
