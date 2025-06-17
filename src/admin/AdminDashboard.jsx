@@ -19,6 +19,7 @@ import SocialEditor from './editors/SocialEditor';
 import ConfigEditor from './editors/ConfigEditor';
 
 import Preview from './Preview';
+import PreviewDebugger from './PreviewDebugger';
 
 export default function AdminDashboard() {
   const [clientData, setClientData] = useState(null);
@@ -231,6 +232,8 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+        
+        <PreviewDebugger />
       </div>
     </div>
   );

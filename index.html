@@ -10,5 +10,16 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Global error handler for resource loading
+      window.addEventListener('error', function(e) {
+        if (e.target.tagName === 'IMG' || e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK') {
+          console.warn('Resource failed to load:', e.target.src || e.target.href);
+          // Prevent the error from propagating
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+    </script>
   </body>
 </html>

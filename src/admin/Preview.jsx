@@ -1,24 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function Preview({ clientData }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  const iframeRef = useRef(null);
   
   const handleRefresh = () => {
     setIframeLoaded(false);
     setRefreshKey(prev => prev + 1);
   };
   
+  // Send data to preview whenever clientData changes
   useEffect(() => {
-    // Set up message event to notify iframe when it's loaded
+    if (!iframeLoaded || !clientData) return;
+    
+    console.log('[Preview] Sending data to iframe');
+    const iframe = iframeRef.current;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage({
+        type: 'UPDATE_CLIENT_DATA',
+        clientData
+      }, '*');
+    }
+  }, [clientData, iframeLoaded]);
+  
+  // Set up message listener for iframe ready event
+  useEffect(() => {
     const handleMessage = (event) => {
+      console.log('[Preview] Received message from iframe:', event.data);
       if (event.data === 'PREVIEW_LOADED') {
+        console.log('[Preview] Iframe reported loaded');
         setIframeLoaded(true);
         
-        // Send the client data to the iframe
-        const iframe = document.getElementById('preview-iframe');
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage({
+        // Send initial data
+        if (clientData && iframeRef.current) {
+          console.log('[Preview] Sending initial data to iframe');
+          iframeRef.current.contentWindow.postMessage({
             type: 'UPDATE_CLIENT_DATA',
             clientData
           }, '*');
@@ -29,22 +46,6 @@ export default function Preview({ clientData }) {
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [clientData]);
-  
-  // Listen for preview update events from forms
-  useEffect(() => {
-    const handlePreviewUpdate = (event) => {
-      const iframe = document.getElementById('preview-iframe');
-      if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage({
-          type: 'UPDATE_CLIENT_DATA',
-          clientData: event.detail.data
-        }, '*');
-      }
-    };
-    
-    window.addEventListener('adminPreviewUpdate', handlePreviewUpdate);
-    return () => window.removeEventListener('adminPreviewUpdate', handlePreviewUpdate);
-  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -64,11 +65,12 @@ export default function Preview({ clientData }) {
           </div>
         )}
         <iframe
+          ref={iframeRef}
           key={refreshKey}
           id="preview-iframe"
           src="/?preview=true"
           className="w-full h-full"
-          onLoad={() => setIframeLoaded(true)}
+          style={{ display: iframeLoaded ? 'block' : 'none' }}
           title="Site Preview"
         />
       </div>

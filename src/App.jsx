@@ -28,12 +28,18 @@ function App() {
     const isPreview = urlParams.get('preview') === 'true';
     
     if (isPreview) {
-      // Notify the parent that we're loaded
+      console.log('[App Preview] Running in preview mode');
+      
+      // Notify parent immediately that preview is ready to receive data
       window.parent.postMessage('PREVIEW_LOADED', '*');
+      console.log('[App Preview] Sent PREVIEW_LOADED message');
       
       // Listen for client data updates from admin panel
       const handleMessage = (event) => {
+        console.log('[App Preview] Received message:', event.data?.type);
+        
         if (event.data && event.data.type === 'UPDATE_CLIENT_DATA') {
+          console.log('[App Preview] Updating content from message');
           setContent(event.data.clientData);
           if (event.data.clientData.config) {
             setConfig(event.data.clientData.config);
