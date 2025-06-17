@@ -10,7 +10,7 @@ export default function PreviewFrame({ clientData }) {
     if (!iframeRef.current || !clientData) return;
     
     try {
-      console.log('[PreviewFrame] Attempting to send data to iframe');
+      console.log('[PreviewFrame] Sending data to iframe');
       iframeRef.current.contentWindow.postMessage({
         type: 'UPDATE_CLIENT_DATA',
         clientData: JSON.parse(JSON.stringify(clientData))
@@ -28,7 +28,7 @@ export default function PreviewFrame({ clientData }) {
         setLoading(false);
         
         // Send data after a short delay
-        setTimeout(sendDataToIframe, 200);
+        setTimeout(sendDataToIframe, 100);
       }
     };
     
@@ -44,7 +44,7 @@ export default function PreviewFrame({ clientData }) {
     }
   }, [clientData, loading]);
   
-  // Manual refresh handler
+  // Handle refresh button click
   const handleRefresh = () => {
     setLoading(true);
     setKey(prev => prev + 1);
@@ -77,7 +77,7 @@ export default function PreviewFrame({ clientData }) {
         <iframe
           ref={iframeRef}
           key={key}
-          src="/?preview=true"
+          src="/preview-render.html"
           className="w-full h-full border-none"
           title="Site Preview"
         />
