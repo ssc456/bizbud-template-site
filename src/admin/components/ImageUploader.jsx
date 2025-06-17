@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { extractSiteId } from '../../utils/siteId';
 
 export default function ImageUploader({ 
   value, 
@@ -10,7 +11,6 @@ export default function ImageUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const fileInputRef = useRef(null);
-  const siteId = localStorage.getItem('siteId') || extractSiteId();
 
   const handleUpload = async (e) => {
     const file = e.target.files[0];
@@ -22,7 +22,7 @@ export default function ImageUploader({
     // Create form data for upload
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('siteId', siteId);
+    formData.append('siteId', extractSiteId());
     
     try {
       const token = localStorage.getItem('adminToken');

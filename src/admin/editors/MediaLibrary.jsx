@@ -10,13 +10,16 @@ export default function MediaLibrary() {
   
   useEffect(() => {
     setSiteId(extractSiteId());
+  }, []);
+  
+  useEffect(() => {
     fetchMedia();
   }, []);
   
   const fetchMedia = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('/api/get-media', {
+      const response = await fetch(`/api/get-media?siteId=${extractSiteId()}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
