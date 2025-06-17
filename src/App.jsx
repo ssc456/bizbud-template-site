@@ -28,21 +28,37 @@ function App() {
     const isPreview = urlParams.get('preview') === 'true';
     
     if (isPreview) {
-      console.log('[App Preview] Running in preview mode');
+      console.log('[App] Running in preview mode');
       
-      // Notify parent immediately that preview is ready to receive data
-      window.parent.postMessage('PREVIEW_LOADED', '*');
-      console.log('[App Preview] Sent PREVIEW_LOADED message');
+      // Create a function to notify the parent when we're fully loaded
+      const notifyParent = () => {
+        console.log('[App] Attempting to notify parent window');
+        try {
+          window.parent.postMessage('PREVIEW_LOADED', '*');
+          console.log('[App] PREVIEW_LOADED message sent to parent');
+        } catch (err) {
+          console.error('[App] Failed to send message to parent:', err);
+        }
+      };
+      
+      // Try to notify immediately and also after a short delay to ensure it happens
+      notifyParent();
+      setTimeout(notifyParent, 500);
       
       // Listen for client data updates from admin panel
       const handleMessage = (event) => {
-        console.log('[App Preview] Received message:', event.data?.type);
+        console.log('[App] Received message from parent:', event.data?.type);
         
         if (event.data && event.data.type === 'UPDATE_CLIENT_DATA') {
-          console.log('[App Preview] Updating content from message');
-          setContent(event.data.clientData);
-          if (event.data.clientData.config) {
-            setConfig(event.data.clientData.config);
+          console.log('[App] Updating content with data from parent');
+          try {
+            setContent(event.data.clientData);
+            if (event.data.clientData.config) {
+              setConfig(event.data.clientData.config);
+            }
+            console.log('[App] Content updated successfully');
+          } catch (err) {
+            console.error('[App] Error updating content:', err);
           }
         }
       };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { extractSiteId } from '../utils/siteId';
@@ -20,6 +20,7 @@ import ConfigEditor from './editors/ConfigEditor';
 
 import Preview from './Preview';
 import PreviewDebugger from './PreviewDebugger';
+import DebugConsole from './DebugConsole';
 
 export default function AdminDashboard() {
   const [clientData, setClientData] = useState(null);
@@ -69,10 +70,13 @@ export default function AdminDashboard() {
   }, []);
   
   useEffect(() => {
-    // Set active section based on URL
-    const path = location.pathname.split('/')[2] || 'dashboard';
-    setActiveSection(path);
-  }, [location]);
+    // Set active section based on URL path
+    const pathSegments = location.pathname.split('/');
+    // Get the last non-empty segment or default to 'dashboard'
+    const currentPath = pathSegments[pathSegments.length - 1] || 'dashboard';
+    console.log('[Admin] Current path:', currentPath);
+    setActiveSection(currentPath);
+  }, [location.pathname]);
   
   // Save changes to Redis
   const handleSave = async () => {
@@ -189,9 +193,9 @@ export default function AdminDashboard() {
           <div className="w-64 flex-shrink-0 border-r border-gray-200 pr-4">
             <nav className="space-y-1">
               {navItems.map(item => (
-                <a
+                <Link
                   key={item.id}
-                  href={item.path}
+                  to={item.path}
                   className={`block px-3 py-2 rounded-md text-sm font-medium ${
                     activeSection === item.id
                       ? 'bg-blue-50 text-blue-700'
@@ -199,15 +203,15 @@ export default function AdminDashboard() {
                   }`}
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
             </nav>
           </div>
           
           {/* Main Content */}
-          <div className="flex-1 flex">
+          <div className="flex-1 flex w-full">
             {/* Editing Area */}
-            <div className="w-1/2 overflow-y-auto p-6">
+            <div className="w-1/2 overflow-y-auto p-4 md:p-6">
               {clientData && (
                 <Routes>
                   <Route index element={<Dashboard clientData={clientData} />} />
@@ -233,6 +237,7 @@ export default function AdminDashboard() {
           </div>
         </div>
         
+        <DebugConsole />
         <PreviewDebugger />
       </div>
     </div>
