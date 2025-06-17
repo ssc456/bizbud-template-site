@@ -1,4 +1,4 @@
-import redis from '../src/utils/redis';
+import redis from './utils/redis';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 

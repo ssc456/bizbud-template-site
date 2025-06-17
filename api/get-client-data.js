@@ -1,4 +1,4 @@
-import redis from '../src/utils/redis';
+import redis from './utils/redis';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
