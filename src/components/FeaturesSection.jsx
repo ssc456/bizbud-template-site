@@ -12,7 +12,7 @@ function FeaturesSection({ title, items, primaryColor }) {
             const Icon = HeroIcons[f.iconName] ?? HeroIcons.CogIcon
             return (
               <motion.div key={i} className='bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg cursor-pointer' whileHover={{ scale: 1.05 }}>
-                <Icon className={`h-10 w-10 text-${primaryColor}-500 mb-4`} />
+                <Icon className={`h-10 w-10 ${primaryColor ? `text-${primaryColor}-500` : 'text-blue-500'} mb-4`} />
                 <h3 className='text-xl font-semibold mb-2'>{f.title}</h3>
                 <p className='text-gray-600'>{f.description}</p>
               </motion.div>

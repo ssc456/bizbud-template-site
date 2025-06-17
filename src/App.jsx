@@ -15,78 +15,88 @@ import Footer from './components/Footer'
 import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
 import { extractSiteId } from './utils/siteId';
+import { initializePreviewDebugging, updatePreviewTitle } from './utils/previewHelpers';
 
 function App() {
-  const [content, setContent] = useState(null)
-  const [config, setConfig] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [siteId, setSiteId] = useState('')
+  const [content, setContent] = useState(null);
+  const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [siteId, setSiteId] = useState('');
+  const [isPreview, setIsPreview] = useState(false);
+
+  useEffect(() => {
+    initializePreviewDebugging();
+  }, []);
 
   useEffect(() => {
     // Check if we're in preview mode
     const urlParams = new URLSearchParams(window.location.search);
-    const isPreview = urlParams.get('preview') === 'true';
+    const previewMode = urlParams.get('preview') === 'true';
+    setIsPreview(previewMode);
     
-    if (isPreview) {
-      console.log('[App] Running in preview mode', window.location.href);
+    if (previewMode) {
+      console.log('[App] Running in preview mode');
       
-      // Always load initial default content to prevent blank screen
-      setContent({
-        siteTitle: "Site Preview",
-        logoUrl: "/images/logo.png",
-        hero: {
-          headline: "Preview Mode",
-          subheadline: "Edit content in the admin panel",
-          ctaText: "Learn More",
-          ctaLink: "#about"
-        },
-        config: {
-          primaryColor: "blue",
-          showHero: true,
-          showAbout: true,
-          showServices: true,
-          showFeatures: true,
-          showTestimonials: true,
-          showContact: true,
-          showFAQ: true
-        }
+      // Initialize with default configuration to avoid null rendering issues
+      setConfig({
+        primaryColor: 'blue',
+        showHero: true,
+        showAbout: true,
+        showServices: true,
+        showFeatures: true,
+        showTestimonials: true,
+        showGallery: true,
+        showContact: true,
+        showFAQ: true
       });
       
-      // Define a function to notify the parent that we're ready
-      const notifyParent = () => {
+      // Function to notify parent that the preview is ready
+      const notifyReady = () => {
         try {
-          console.log('[App] Sending PREVIEW_LOADED to parent');
           window.parent.postMessage('PREVIEW_LOADED', '*');
+          console.log('[App] Preview ready message sent');
         } catch (err) {
-          console.error('[App] Failed to notify parent:', err);
+          console.error('[App] Failed to send ready message:', err);
         }
       };
       
-      // Try notifying immediately and also after a delay (for better reliability)
-      notifyParent();
-      setTimeout(notifyParent, 500);
-      
-      // Set up message listener for content updates from admin panel
+      // Set up listener for content updates
       const handleMessage = (event) => {
-        console.log('[App] Received message type:', event.data?.type);
-        
-        if (event.data && event.data.type === 'UPDATE_CLIENT_DATA') {
-          console.log('[App] Updating preview content');
-          try {
-            const newData = event.data.clientData;
-            // Create new object references to force re-render
-            setContent({...newData});
-            if (newData.config) {
-              setConfig({...newData.config});
-            }
-          } catch (err) {
-            console.error('[App] Error updating content:', err);
+        if (event.data?.type === 'UPDATE_CLIENT_DATA' && event.data?.clientData) {
+          console.log('[App] Received client data in preview mode');
+          
+          const newData = event.data.clientData;
+          
+          // Important: Create brand new object references to force re-render
+          setContent({...newData});
+          
+          // Make sure config is properly updated as well
+          if (newData.config) {
+            setConfig({...newData.config});
           }
+          
+          // Update document title
+          if (newData.siteTitle) {
+            document.title = newData.siteTitle;
+          }
+          
+          setLoading(false);
+          console.log('[App] Preview content updated successfully');
         }
       };
       
+      // Register the event listener
       window.addEventListener('message', handleMessage);
-      return () => window.removeEventListener('message', handleMessage);
+      
+      // Send initial ready notification
+      notifyReady();
+      
+      // Also try again shortly in case the parent wasn't ready
+      setTimeout(notifyReady, 500);
+      
+      return () => {
+        window.removeEventListener('message', handleMessage);
+      };
     }
     
     const extractedSiteId = extractSiteId();
