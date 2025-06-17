@@ -17,6 +17,7 @@ import FAQEditor from './editors/FAQEditor';
 import ContactEditor from './editors/ContactEditor';
 import SocialEditor from './editors/SocialEditor';
 import ConfigEditor from './editors/ConfigEditor';
+import MediaLibrary from './editors/MediaLibrary';
 
 import PreviewFrame from './PreviewFrame';
 import DebugConsole from './DebugConsole';
@@ -125,6 +126,7 @@ export default function AdminDashboard() {
     { id: 'contact', label: 'Contact', path: '/admin/dashboard/contact' },
     { id: 'social', label: 'Social Media', path: '/admin/dashboard/social' },
     { id: 'config', label: 'Display Settings', path: '/admin/dashboard/config' },
+    { id: 'media', label: 'Media Library', path: '/admin/dashboard/media' },
   ];
 
   if (loading) {
@@ -242,6 +244,7 @@ export default function AdminDashboard() {
                 <Route path="contact" element={<ContactEditor clientData={clientData} setClientData={setClientData} />} />
                 <Route path="social" element={<SocialEditor clientData={clientData} setClientData={setClientData} />} />
                 <Route path="config" element={<ConfigEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="media" element={<MediaLibrary />} />
               </Routes>
             )}
           </div>

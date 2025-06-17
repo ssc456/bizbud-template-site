@@ -72,6 +72,22 @@ function GallerySection({
       overlay: 'bg-green-900/70',
       button: 'bg-green-600 hover:bg-green-700',
       glow: 'shadow-green-500/20'
+    },
+    red: {
+      accent: 'text-red-600',
+      gradient: 'from-red-600 to-rose-500',
+      border: 'border-red-200', 
+      overlay: 'bg-red-900/70',
+      button: 'bg-red-600 hover:bg-red-700',
+      glow: 'shadow-red-500/20'
+    },
+    yellow: {
+      accent: 'text-amber-600',
+      gradient: 'from-amber-500 to-yellow-400',
+      border: 'border-amber-200', 
+      overlay: 'bg-amber-900/70',
+      button: 'bg-amber-600 hover:bg-amber-700',
+      glow: 'shadow-amber-500/20'
     }
   };
   

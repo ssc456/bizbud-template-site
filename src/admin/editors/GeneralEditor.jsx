@@ -1,4 +1,5 @@
-import FormField from '../components/FormField'
+import FormField from '../components/FormField';
+import ImageUploader from '../components/ImageUploader';
 
 function GeneralEditor({ clientData, setClientData }) {
   const handleChange = (field, value) => {
@@ -22,35 +23,13 @@ function GeneralEditor({ clientData, setClientData }) {
             helpText="This appears in the browser tab and at the top of your site"
           />
 
-          <FormField
-            label="Logo URL"
-            id="logoUrl"
-            type="text"
+          <ImageUploader
+            label="Logo Image"
             value={clientData.logoUrl || ''}
-            onChange={(e) => handleChange('logoUrl', e.target.value)}
-            helpText="Path to your logo image (e.g., /images/logo.png)"
+            onChange={(value) => handleChange('logoUrl', value)}
+            helpText="Upload your logo (recommended size: 200x50px)"
+            height="h-24"
           />
-
-          <div className="pt-4">
-            <div className="bg-blue-50 p-3 rounded-md text-sm text-blue-800">
-              <p className="font-medium">Logo Preview</p>
-              {clientData.logoUrl ? (
-                <div className="mt-2 p-4 bg-white border border-gray-200 rounded">
-                  <img 
-                    src={clientData.logoUrl} 
-                    alt="Logo Preview"
-                    className="h-12 object-contain" 
-                    onError={(e) => {
-                      e.target.onerror = null; 
-                      e.target.src = "https://via.placeholder.com/150x50?text=Invalid+Image";
-                    }}
-                  />
-                </div>
-              ) : (
-                <p className="mt-2 italic">No logo set</p>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>

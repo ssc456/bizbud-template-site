@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import FormField from '../components/FormField'
+import { useState } from 'react';
+import FormField from '../components/FormField';
+import ImageUploader from '../components/ImageUploader';
 
 function GalleryEditor({ clientData, setClientData }) {
   const [activeImageIndex, setActiveImageIndex] = useState(null);
@@ -157,7 +158,7 @@ function GalleryEditor({ clientData, setClientData }) {
                       className="w-full h-full object-cover rounded"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "https://via.placeholder.com/150?text=Error";
+                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='12' fill='%23999' text-anchor='middle' dominant-baseline='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
                       }}
                     />
                   ) : (
@@ -188,13 +189,12 @@ function GalleryEditor({ clientData, setClientData }) {
                 </div>
 
                 <div className="space-y-4">
-                  <FormField
-                    label="Image Source URL"
-                    id={`image-${activeImageIndex}-src`}
-                    type="text"
+                  <ImageUploader
+                    label="Gallery Image"
                     value={clientData.gallery.images[activeImageIndex].src || ''}
-                    onChange={(e) => handleImageChange(activeImageIndex, 'src', e.target.value)}
-                    helpText="Path to your image (e.g., /images/gallery/image1.jpg)"
+                    onChange={(value) => handleImageChange(activeImageIndex, 'src', value)}
+                    helpText="Upload an image (recommended size: 800x600px)"
+                    height="h-48"
                   />
 
                   <FormField
@@ -221,24 +221,6 @@ function GalleryEditor({ clientData, setClientData }) {
                     value={clientData.gallery.images[activeImageIndex].description || ''}
                     onChange={(e) => handleImageChange(activeImageIndex, 'description', e.target.value)}
                   />
-                  
-                  {/* Preview */}
-                  {clientData.gallery.images[activeImageIndex].src && (
-                    <div className="mt-4">
-                      <p className="font-medium mb-2">Preview</p>
-                      <div className="border border-gray-200 rounded p-2">
-                        <img
-                          src={clientData.gallery.images[activeImageIndex].src}
-                          alt={clientData.gallery.images[activeImageIndex].alt}
-                          className="max-h-60 mx-auto"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = "https://via.placeholder.com/400x300?text=Invalid+Image";
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             )}

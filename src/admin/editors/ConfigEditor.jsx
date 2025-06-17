@@ -12,12 +12,12 @@ function ConfigEditor({ clientData, setClientData }) {
   }
 
   const colorOptions = [
-    { value: 'pink', label: 'Pink' },
     { value: 'blue', label: 'Blue' },
-    { value: 'purple', label: 'Purple' },
     { value: 'green', label: 'Green' },
+    { value: 'purple', label: 'Purple' },
+    { value: 'pink', label: 'Pink' },
     { value: 'red', label: 'Red' },
-    { value: 'yellow', label: 'Yellow' },
+    { value: 'yellow', label: 'Yellow' }
   ]
 
   return (
