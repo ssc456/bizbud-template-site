@@ -1,4 +1,22 @@
-import redis from './utils/redis';
+import { Redis } from '@upstash/redis';
+
+// Inline Redis client
+const redis = (() => {
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+  
+  console.log('[SaveData API] Redis env vars:', {
+    url: url ? 'Found' : 'Not found',
+    token: token ? 'Found' : 'Not found'
+  });
+
+  if (!url || !token) {
+    console.error('[SaveData API] Missing Redis credentials');
+    return null;
+  }
+
+  return new Redis({ url, token });
+})();
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,6 +28,10 @@ export default async function handler(req, res) {
   
   if (!authToken) {
     return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  if (!redis) {
+    return res.status(503).json({ error: 'Database connection unavailable' });
   }
   
   try {

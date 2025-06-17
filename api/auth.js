@@ -1,6 +1,24 @@
-import redis from './utils/redis';
+import { Redis } from '@upstash/redis';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+
+// Inline Redis client
+const redis = (() => {
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+  
+  console.log('[Auth API] Redis env vars:', {
+    url: url ? 'Found' : 'Not found',
+    token: token ? 'Found' : 'Not found'
+  });
+
+  if (!url || !token) {
+    console.error('[Auth API] Missing Redis credentials');
+    return null;
+  }
+
+  return new Redis({ url, token });
+})();
 
 export default async function handler(req, res) {
   // Handle CORS preflight requests
@@ -20,17 +38,10 @@ export default async function handler(req, res) {
     
     console.log('[Auth API] Request for site:', siteId);
     
-    if (!password || !siteId) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // Test Redis connection
-    try {
-      await redis.ping();
-      console.log('[Auth API] Redis connection verified');
-    } catch (redisError) {
-      console.error('[Auth API] Redis connection error:', redisError);
-      return res.status(500).json({ error: 'Database connection failed' });
+    if (!password || !siteId || !redis) {
+      return res.status(400).json({ 
+        error: !redis ? 'Redis connection not available' : 'Missing required fields'
+      });
     }
 
     // Get site settings from Redis
