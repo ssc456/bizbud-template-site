@@ -106,14 +106,14 @@ function GalleryEditor({ clientData, setClientData }) {
             onChange={(e) => handleSectionChange('layout', e.target.value)}
           />
           
-          <FormField
+          {/* <FormField
             label="Maximum Images to Show"
             id="gallery-maxImages"
             type="number"
             value={clientData.gallery?.maxImages || 6}
             onChange={(e) => handleSectionChange('maxImages', parseInt(e.target.value))}
-          />
-          
+          /> */}
+{/*           
           <FormField
             label="View All Link"
             id="gallery-viewAllLink"
@@ -121,7 +121,7 @@ function GalleryEditor({ clientData, setClientData }) {
             value={clientData.gallery?.viewAllLink || ''}
             onChange={(e) => handleSectionChange('viewAllLink', e.target.value)}
             helpText="URL for the 'View All' button (leave empty to hide the button)"
-          />
+          /> */}
         </div>
       </div>
 

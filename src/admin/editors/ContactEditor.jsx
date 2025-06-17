@@ -42,23 +42,8 @@ function ContactEditor({ clientData, setClientData }) {
             onChange={(e) => handleChange('email', e.target.value)}
           />
 
-          <FormField
-            label="Phone Number"
-            id="contact-phone"
-            type="tel"
-            value={clientData.contact?.phone || ''}
-            onChange={(e) => handleChange('phone', e.target.value)}
-          />
-
-          {/* Optional address field */}
-          <FormField
-            label="Address"
-            id="contact-address"
-            type="textarea"
-            value={clientData.contact?.address || ''}
-            onChange={(e) => handleChange('address', e.target.value)}
-            rows={3}
-          />
+          
+          
         </div>
       </div>
     </div>

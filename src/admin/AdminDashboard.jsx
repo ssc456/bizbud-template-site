@@ -126,7 +126,7 @@ export default function AdminDashboard() {
     { id: 'contact', label: 'Contact', path: '/admin/dashboard/contact' },
     { id: 'social', label: 'Social Media', path: '/admin/dashboard/social' },
     { id: 'config', label: 'Display Settings', path: '/admin/dashboard/config' },
-    { id: 'media', label: 'Media Library', path: '/admin/dashboard/media' },
+    // { id: 'media', label: 'Media Library', path: '/admin/dashboard/media' },
   ];
 
   if (loading) {

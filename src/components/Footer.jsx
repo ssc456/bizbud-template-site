@@ -1,5 +1,5 @@
 // src/components/Footer.jsx
-import { FaFacebook, FaInstagram } from 'react-icons/fa'
+import { FaFacebook, FaInstagram, FaTwitter, FaLinkedin, FaYoutube, FaTiktok } from 'react-icons/fa'
 
 const colorMap = {
   blue: 'bg-blue-700',
@@ -12,30 +12,61 @@ const colorMap = {
   gray: 'bg-gray-700'
 }
 
+const socialIcons = {
+  facebook: FaFacebook,
+  instagram: FaInstagram,
+  twitter: FaTwitter,
+  linkedin: FaLinkedin,
+  youtube: FaYoutube,
+  tiktok: FaTiktok
+}
+
 function Footer({ social, primaryColor, siteTitle }) {
-  const bg = colorMap[primaryColor] ?? 'bg-blue-700'
+  const bgColor = colorMap[primaryColor] || 'bg-blue-700'
+  
+  // Helper function to get platform name from URL
+  const getPlatformFromUrl = (url) => {
+    if (!url) return null;
+    const platforms = Object.keys(socialIcons);
+    return platforms.find(platform => url.toLowerCase().includes(platform));
+  };
+
   return (
-    <footer className={`${bg} text-white pt-12 pb-6`}>
-      <div className='max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8'>
-        <div />
-        <div>
-          <h3 className='text-lg font-semibold mb-4'>Quick Links</h3>
-          <ul className='space-y-2 text-sm'>
-            <li><a href='#about' className='hover:underline'>About</a></li>
-            <li><a href='#services' className='hover:underline'>Services</a></li>
-            <li><a href='#testimonials' className='hover:underline'>Testimonials</a></li>
-            <li><a href='#contact' className='hover:underline'>Contact</a></li>
-          </ul>
-        </div>
-        <div>
-          <h3 className='text-lg font-semibold mb-4'>Follow Us</h3>
-          <div className='flex space-x-4'>
-            {social.facebook && <a href={social.facebook} target='_blank' rel='noopener noreferrer' className='hover:text-gray-200'><FaFacebook className='h-6 w-6' /></a>}
-            {social.instagram && <a href={social.instagram} target='_blank' rel='noopener noreferrer' className='hover:text-gray-200'><FaInstagram className='h-6 w-6' /></a>}
+    <footer className={`${bgColor} text-white py-12`}>
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="mb-6 md:mb-0">
+            <h3 className="text-xl font-bold">{siteTitle || 'Business Name'}</h3>
+            <p className="mt-2 text-sm text-white text-opacity-80">© {new Date().getFullYear()} All rights reserved</p>
           </div>
+
+          {/* Social Links */}
+          {social && Object.entries(social).length > 0 && (
+            <div className="flex space-x-4">
+              {Object.entries(social).map(([key, url]) => {
+                if (!url) return null;
+                const platform = getPlatformFromUrl(url) || key;
+                const IconComponent = socialIcons[platform.toLowerCase()];
+                
+                if (!IconComponent) return null;
+                
+                return (
+                  <a 
+                    key={key}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white hover:text-opacity-80 transition-opacity"
+                    aria-label={`Visit our ${platform} page`}
+                  >
+                    <IconComponent className="text-2xl" />
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
-      <div className='mt-10 text-center text-xs text-gray-300'>© {new Date().getFullYear()} {siteTitle}. All rights reserved.</div>
     </footer>
   )
 }

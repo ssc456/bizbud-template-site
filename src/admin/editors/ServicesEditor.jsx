@@ -163,7 +163,7 @@ function ServicesEditor({ clientData, setClientData }) {
             onChange={(e) => handleSectionChange('description', e.target.value)}
           />
 
-          <FormField
+          {/* <FormField
             label="Layout Style"
             id="services-layoutStyle"
             type="select"
@@ -174,7 +174,7 @@ function ServicesEditor({ clientData, setClientData }) {
               { value: 'simple', label: 'Simple' }
             ]}
             onChange={(e) => handleSectionChange('layoutStyle', e.target.value)}
-          />
+          /> */}
         </div>
       </div>
 

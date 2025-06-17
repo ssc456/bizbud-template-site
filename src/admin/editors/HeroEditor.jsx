@@ -35,7 +35,7 @@ function HeroEditor({ clientData, setClientData }) {
           />
 
           <FormField
-            label="Call-to-Action Text"
+            label="Button Text"
             id="hero-ctaText"
             type="text"
             value={clientData.hero?.ctaText || ''}
@@ -43,14 +43,14 @@ function HeroEditor({ clientData, setClientData }) {
             helpText="Text displayed on the hero button"
           />
 
-          <FormField
+          {/* <FormField
             label="Call-to-Action Link"
             id="hero-ctaLink"
             type="text"
             value={clientData.hero?.ctaLink || ''}
             onChange={(e) => handleChange('ctaLink', e.target.value)}
             helpText="Where the button links to (e.g., #contact)"
-          />
+          /> */}
         </div>
       </div>
     </div>

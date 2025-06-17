@@ -35,13 +35,13 @@ function AboutEditor({ clientData, setClientData }) {
             helpText="Describe your business, services, or mission"
           />
           
-          <ImageUploader
+          {/* <ImageUploader
             label="About Image"
             value={clientData.about?.image || ''}
             onChange={(value) => handleChange('image', value)}
             helpText="Upload an image for your about section (recommended size: 600x400px)"
             height="h-48"
-          />
+          /> */}
         </div>
       </div>
     </div>
