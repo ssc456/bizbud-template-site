@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Inline Redis client
 const redis = (() => {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+  const url = process.env.KV_REST_API_URL?.trim();
+  const token = process.env.KV_REST_API_TOKEN?.trim();
   
   console.log('[Auth API] Redis env vars:', {
     url: url ? 'Found' : 'Not found',

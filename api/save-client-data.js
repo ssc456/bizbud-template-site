@@ -2,8 +2,8 @@ import { Redis } from '@upstash/redis';
 
 // Inline Redis client
 const redis = (() => {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+  const url = process.env.KV_REST_API_URL?.trim();
+  const token = process.env.KV_REST_API_TOKEN?.trim();
   
   console.log('[SaveData API] Redis env vars:', {
     url: url ? 'Found' : 'Not found',
