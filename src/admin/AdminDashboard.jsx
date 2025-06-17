@@ -18,7 +18,7 @@ import ContactEditor from './editors/ContactEditor';
 import SocialEditor from './editors/SocialEditor';
 import ConfigEditor from './editors/ConfigEditor';
 
-import Preview from './Preview';
+import PreviewFrame from './PreviewFrame';
 import DebugConsole from './DebugConsole';
 
 export default function AdminDashboard() {
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
           
           {/* Preview Area */}
           <div className="w-1/2 border-l border-gray-200 overflow-hidden">
-            <Preview clientData={clientData} />
+            <PreviewFrame clientData={clientData} />
           </div>
         </div>
       </div>

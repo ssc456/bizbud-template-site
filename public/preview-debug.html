@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview Debugger</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.5; padding: 2rem; }
+    pre { background: #f5f5f5; padding: 1rem; border-radius: 0.5rem; overflow: auto; }
+    .log { margin-bottom: 0.5rem; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Preview Message Debugger</h1>
+  <div>
+    <button id="sendMsg">Send Test Message</button>
+    <button id="clear">Clear Logs</button>
+  </div>
+  <h2>Message Logs:</h2>
+  <div id="logs"></div>
+  
+  <script>
+    const logs = document.getElementById('logs');
+    const sendBtn = document.getElementById('sendMsg');
+    const clearBtn = document.getElementById('clear');
+    
+    function log(message, isError = false) {
+      const div = document.createElement('pre');
+      div.className = isError ? 'log error' : 'log';
+      div.textContent = `[${new Date().toISOString()}] ${message}`;
+      logs.prepend(div);
+    }
+    
+    window.addEventListener('message', (event) => {
+      log(`Received message: ${JSON.stringify(event.data)}`);
+    });
+    
+    sendBtn.addEventListener('click', () => {
+      try {
+        window.parent.postMessage('PREVIEW_LOADED', '*');
+        log('Sent PREVIEW_LOADED message to parent');
+      } catch (err) {
+        log(`Error: ${err.message}`, true);
+      }
+    });
+    
+    clearBtn.addEventListener('click', () => {
+      logs.innerHTML = '';
+    });
+    
+    // Send initial ready message
+    try {
+      window.parent.postMessage('PREVIEW_LOADED', '*');
+      log('Sent initial PREVIEW_LOADED message');
+    } catch (err) {
+      log(`Error sending initial message: ${err.message}`, true);
+    }
+  </script>
+</body>
+</html>

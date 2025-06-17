@@ -28,13 +28,20 @@ function App() {
     const isPreview = urlParams.get('preview') === 'true';
     
     if (isPreview) {
-      console.log('[App] Running in preview mode');
+      console.log('[App] Running in preview mode', window.location.href);
       
-      // Create default content if needed for preview
-      if (!content) {
-        setContent({});
-        setConfig({
-          primaryColor: 'blue',
+      // Always load initial default content to prevent blank screen
+      setContent({
+        siteTitle: "Site Preview",
+        logoUrl: "/images/logo.png",
+        hero: {
+          headline: "Preview Mode",
+          subheadline: "Edit content in the admin panel",
+          ctaText: "Learn More",
+          ctaLink: "#about"
+        },
+        config: {
+          primaryColor: "blue",
           showHero: true,
           showAbout: true,
           showServices: true,
@@ -42,27 +49,38 @@ function App() {
           showTestimonials: true,
           showContact: true,
           showFAQ: true
-        });
-      }
+        }
+      });
       
-      // Notify parent immediately that preview is ready
-      window.parent.postMessage('PREVIEW_LOADED', '*');
+      // Define a function to notify the parent that we're ready
+      const notifyParent = () => {
+        try {
+          console.log('[App] Sending PREVIEW_LOADED to parent');
+          window.parent.postMessage('PREVIEW_LOADED', '*');
+        } catch (err) {
+          console.error('[App] Failed to notify parent:', err);
+        }
+      };
       
-      // Listen for client data updates from admin panel
+      // Try notifying immediately and also after a delay (for better reliability)
+      notifyParent();
+      setTimeout(notifyParent, 500);
+      
+      // Set up message listener for content updates from admin panel
       const handleMessage = (event) => {
+        console.log('[App] Received message type:', event.data?.type);
+        
         if (event.data && event.data.type === 'UPDATE_CLIENT_DATA') {
-          console.log('[App] Updating content with data from admin');
-          const data = event.data.clientData;
-          
-          // Important: Force a re-render with new object references
-          setContent({...data});
-          if (data.config) {
-            setConfig({...data.config});
-          }
-          
-          // Set the page title
-          if (data.siteTitle) {
-            document.title = data.siteTitle;
+          console.log('[App] Updating preview content');
+          try {
+            const newData = event.data.clientData;
+            // Create new object references to force re-render
+            setContent({...newData});
+            if (newData.config) {
+              setConfig({...newData.config});
+            }
+          } catch (err) {
+            console.error('[App] Error updating content:', err);
           }
         }
       };
