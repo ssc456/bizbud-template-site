@@ -9,28 +9,18 @@ console.log('[Redis] Environment variables check:', {
   token: token ? 'Found' : 'Not found'
 });
 
-if (!url || !token) {
-  console.error('[Redis] Missing environment variables!');
-}
-
 let redis;
 
 try {
   // Initialize Redis client from environment variables
+  if (!url || !token) {
+    throw new Error('Missing Redis environment variables');
+  }
+  
   redis = new Redis({
     url,
     token,
   });
-  
-  // Test connection in background (don't await)
-  setTimeout(async () => {
-    try {
-      await redis.ping();
-      console.log('[Redis] Connection test successful');
-    } catch (error) {
-      console.error('[Redis] Connection test failed:', error);
-    }
-  }, 0);
   
 } catch (error) {
   console.error('[Redis] Initialization error:', error);
@@ -45,7 +35,6 @@ try {
       console.error(`[Redis Mock] SET operation for key "${key}" - Redis unavailable`);
       return null;
     },
-    // Add other necessary methods as needed
     ping: async () => {
       console.error(`[Redis Mock] PING operation - Redis unavailable`);
       throw new Error('Redis connection unavailable');
