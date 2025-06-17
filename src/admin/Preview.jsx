@@ -1,69 +1,80 @@
 import { useState, useEffect, useRef } from 'react';
 
 export default function Preview({ clientData }) {
-  const [refreshKey, setRefreshKey] = useState(0);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const iframeRef = useRef(null);
-  
-  const handleRefresh = () => {
-    setIframeLoaded(false);
-    setRefreshKey(prev => prev + 1);
-  };
-  
-  // Send data whenever clientData changes
-  useEffect(() => {
-    if (!iframeLoaded || !clientData || !iframeRef.current) return;
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Function to send data to iframe
+  const sendDataToIframe = () => {
+    if (!iframeRef.current || !clientData) return;
     
-    console.log('[Preview] Sending updated client data to iframe');
     try {
+      console.log('[Preview] Sending data to iframe');
       iframeRef.current.contentWindow.postMessage({
         type: 'UPDATE_CLIENT_DATA',
-        clientData: JSON.parse(JSON.stringify(clientData)) // Deep clone to avoid reference issues
+        clientData: JSON.parse(JSON.stringify(clientData))
       }, '*');
     } catch (err) {
       console.error('[Preview] Error sending data:', err);
     }
+  };
+
+  // Send data whenever clientData changes
+  useEffect(() => {
+    if (iframeLoaded) {
+      sendDataToIframe();
+    }
   }, [clientData, iframeLoaded]);
-  
-  // Listen for iframe ready message
+
+  // Set up message listener
   useEffect(() => {
     const handleMessage = (event) => {
-      console.log('[Preview] Received message:', event.data);
       if (event.data === 'PREVIEW_LOADED') {
-        console.log('[Preview] Iframe reported loaded');
+        console.log('[Preview] Iframe signaled it is loaded');
         setIframeLoaded(true);
+        
+        // Send data after a small delay to ensure iframe is truly ready
+        setTimeout(() => sendDataToIframe(), 100);
       }
     };
     
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [clientData]);
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    setIframeLoaded(false);
+    setRefreshKey(prev => prev + 1);
+  };
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center px-4 py-2 border-b">
+      <div className="bg-gray-100 border-b border-gray-200 flex justify-between items-center p-3">
         <h3 className="font-medium">Live Preview</h3>
         <button 
           onClick={handleRefresh}
-          className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"
+          className="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50"
         >
           Refresh
         </button>
       </div>
-      <div className="flex-1 overflow-hidden relative">
+      
+      <div className="flex-1 relative">
         {!iframeLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
           </div>
         )}
+        
         <iframe
           ref={iframeRef}
           key={refreshKey}
           id="preview-iframe"
           src="/?preview=true"
-          className="w-full h-full border-none"
+          className="w-full h-full"
           onLoad={() => console.log('[Preview] Iframe onLoad event fired')}
-          title="Site Preview"
         />
       </div>
     </div>

@@ -26,16 +26,16 @@ export default function DebugConsole() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 right-4 bg-red-600 text-white p-2 rounded-full shadow-lg z-50"
+        className="fixed bottom-4 right-4 bg-blue-600 text-white p-2 rounded-full shadow-lg z-50"
         title="Debug Tools"
       >
-        🛠️
+        🐛
       </button>
     );
   }
 
   return (
-    <div className="fixed top-4 right-4 w-80 bg-white rounded shadow-lg border p-4 z-50">
+    <div className="fixed bottom-4 right-4 w-80 bg-white rounded shadow-lg border p-4 z-50">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-bold">Debug Console</h3>
         <button onClick={() => setIsOpen(false)} className="text-gray-600">×</button>

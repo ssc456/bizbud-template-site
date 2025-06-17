@@ -19,7 +19,6 @@ import SocialEditor from './editors/SocialEditor';
 import ConfigEditor from './editors/ConfigEditor';
 
 import Preview from './Preview';
-import PreviewDebugger from './PreviewDebugger';
 import DebugConsole from './DebugConsole';
 
 export default function AdminDashboard() {
@@ -34,11 +33,11 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Get the site ID and fetch initial data
   useEffect(() => {
     const extractedSiteId = extractSiteId();
     setSiteId(extractedSiteId);
     
-    // Fetch client data
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('adminToken');
@@ -69,14 +68,12 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
   
+  // Update active section when URL changes
   useEffect(() => {
-    // Set active section based on URL path
-    const pathSegments = location.pathname.split('/');
-    // Get the last non-empty segment or default to 'dashboard'
-    const currentPath = pathSegments[pathSegments.length - 1] || 'dashboard';
-    console.log('[Admin] Current path:', currentPath);
-    setActiveSection(currentPath);
-  }, [location.pathname]);
+    const path = location.pathname;
+    const section = path.split('/').pop() || 'dashboard';
+    setActiveSection(section);
+  }, [location]);
   
   // Save changes to Redis
   const handleSave = async () => {
@@ -130,49 +127,89 @@ export default function AdminDashboard() {
     { id: 'config', label: 'Display Settings', path: '/admin/dashboard/config' },
   ];
 
-  if (loading) return <div className="p-8 text-center">Loading site data...</div>;
-  if (error) return <div className="p-8 text-center text-red-600">Error: {error}</div>;
-  
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ToastContainer position="top-right" autoClose={3000} />
-      
-      {/* Navbar */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold">{clientData.siteTitle} Admin</h1>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <button onClick={() => window.location.href = '/'} className="text-gray-600 hover:text-gray-800 mr-4">
-                View Site
-              </button>
-              <button onClick={() => {
-                localStorage.removeItem('adminToken');
-                window.location.href = '/admin';
-              }} className="text-gray-600 hover:text-gray-800">
-                Logout
-              </button>
-            </div>
-          </div>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading admin panel...</p>
         </div>
       </div>
+    );
+  }
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <header className="flex justify-between items-center mb-6">
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+          <h1 className="text-xl font-bold text-red-600 mb-4">Error</h1>
+          <p className="mb-4">{error}</p>
+          <button
+            onClick={() => window.location.href = '/admin'}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Back to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
+      <ToastContainer position="top-right" />
+      
+      {/* Sidebar */}
+      <div className="w-64 bg-gray-800 text-white flex flex-col">
+        <div className="p-4 border-b border-gray-700">
+          <h1 className="text-xl font-bold">Admin Panel</h1>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto py-2">
+          <nav className="space-y-1 px-2">
+            {navItems.map(item => (
+              <Link
+                key={item.id}
+                to={item.path}
+                className={`flex items-center px-4 py-2 text-sm rounded-md ${
+                  activeSection === item.id
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        
+        <div className="p-4 border-t border-gray-700">
+          <button
+            onClick={() => window.location.href = '/'}
+            className="w-full px-4 py-2 text-sm text-gray-300 rounded-md hover:bg-gray-700"
+          >
+            View Site
+          </button>
+          
+          <button
+            onClick={() => {
+              localStorage.removeItem('adminToken');
+              window.location.href = '/admin';
+            }}
+            className="w-full px-4 py-2 text-sm text-gray-300 rounded-md hover:bg-gray-700 mt-2"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <header className="bg-white shadow-sm border-b border-gray-200 py-4 px-6 flex justify-between items-center">
           <h2 className="text-xl font-semibold">{navItems.find(item => item.id === activeSection)?.label || 'Dashboard'}</h2>
           
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => window.location.href = '/'}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              View Site
-            </button>
-            
             <button
               onClick={handleSave}
               disabled={saving || !hasChanges()}
@@ -189,57 +226,34 @@ export default function AdminDashboard() {
         
         {/* Content Area */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Sidebar */}
-          <div className="w-64 flex-shrink-0 border-r border-gray-200 pr-4">
-            <nav className="space-y-1">
-              {navItems.map(item => (
-                <Link
-                  key={item.id}
-                  to={item.path}
-                  className={`block px-3 py-2 rounded-md text-sm font-medium ${
-                    activeSection === item.id
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+          {/* Editing Area */}
+          <div className="w-1/2 overflow-y-auto p-6">
+            {clientData && (
+              <Routes>
+                <Route index element={<Dashboard clientData={clientData} />} />
+                <Route path="general" element={<GeneralEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="hero" element={<HeroEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="about" element={<AboutEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="services" element={<ServicesEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="features" element={<FeaturesEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="gallery" element={<GalleryEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="testimonials" element={<TestimonialsEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="faq" element={<FAQEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="contact" element={<ContactEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="social" element={<SocialEditor clientData={clientData} setClientData={setClientData} />} />
+                <Route path="config" element={<ConfigEditor clientData={clientData} setClientData={setClientData} />} />
+              </Routes>
+            )}
           </div>
           
-          {/* Main Content */}
-          <div className="flex-1 flex w-full">
-            {/* Editing Area */}
-            <div className="w-1/2 overflow-y-auto p-4 md:p-6">
-              {clientData && (
-                <Routes>
-                  <Route index element={<Dashboard clientData={clientData} />} />
-                  <Route path="general" element={<GeneralEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="hero" element={<HeroEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="about" element={<AboutEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="services" element={<ServicesEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="features" element={<FeaturesEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="gallery" element={<GalleryEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="testimonials" element={<TestimonialsEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="faq" element={<FAQEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="contact" element={<ContactEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="social" element={<SocialEditor clientData={clientData} setClientData={setClientData} />} />
-                  <Route path="config" element={<ConfigEditor clientData={clientData} setClientData={setClientData} />} />
-                </Routes>
-              )}
-            </div>
-            
-            {/* Preview Area */}
-            <div className="w-1/2 border-l border-gray-200 overflow-hidden">
-              <Preview clientData={clientData} />
-            </div>
+          {/* Preview Area */}
+          <div className="w-1/2 border-l border-gray-200 overflow-hidden">
+            <Preview clientData={clientData} />
           </div>
         </div>
-        
-        <DebugConsole />
-        <PreviewDebugger />
       </div>
+      
+      <DebugConsole />
     </div>
   );
 }
