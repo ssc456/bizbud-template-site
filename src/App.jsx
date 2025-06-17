@@ -23,6 +23,28 @@ function App() {
   const [siteId, setSiteId] = useState('')
 
   useEffect(() => {
+    // Check if we're in preview mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPreview = urlParams.get('preview') === 'true';
+    
+    if (isPreview) {
+      // Notify the parent that we're loaded
+      window.parent.postMessage('PREVIEW_LOADED', '*');
+      
+      // Listen for client data updates from admin panel
+      const handleMessage = (event) => {
+        if (event.data && event.data.type === 'UPDATE_CLIENT_DATA') {
+          setContent(event.data.clientData);
+          if (event.data.clientData.config) {
+            setConfig(event.data.clientData.config);
+          }
+        }
+      };
+      
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
+    }
+    
     const extractedSiteId = extractSiteId();
     setSiteId(extractedSiteId);
     
@@ -87,7 +109,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
         <Route path="/" element={
           <div className='min-h-screen bg-white scroll-smooth'>
             <Header siteTitle={content.siteTitle} logoUrl={content.logoUrl} config={config} primaryColor={config.primaryColor} />
