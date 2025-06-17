@@ -1,6 +1,7 @@
 import { Redis } from '@upstash/redis';
 import { v2 as cloudinary } from 'cloudinary';
 import { IncomingForm } from 'formidable';
+import fs from 'fs';
 
 // Setup Redis client
 const redis = new Redis({
@@ -72,6 +73,15 @@ export default async function handler(req, res) {
         resource_type: 'auto'
       });
       
+      // Clean up the temporary file
+      try {
+        if (fs.existsSync(file.filepath)) {
+          fs.unlinkSync(file.filepath);
+        }
+      } catch (cleanupError) {
+        console.warn('Failed to clean up temporary file:', cleanupError);
+      }
+      
       // Store reference in Redis for media library
       const mediaItem = {
         url: result.secure_url,
@@ -91,10 +101,10 @@ export default async function handler(req, res) {
       });
     } catch (cloudinaryError) {
       console.error('Cloudinary upload error:', cloudinaryError);
-      return res.status(500).json({ error: 'Failed to upload to image service' });
+      return res.status(500).json({ error: 'Failed to upload to image service: ' + cloudinaryError.message });
     }
   } catch (error) {
     console.error('Upload error:', error);
-    return res.status(500).json({ error: 'Failed to process upload' });
+    return res.status(500).json({ error: 'Failed to process upload: ' + error.message });
   }
 }
