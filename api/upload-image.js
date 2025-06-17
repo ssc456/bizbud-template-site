@@ -51,32 +51,55 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
     
-    // Parse form data
-    const form = new IncomingForm({ keepExtensions: true });
-    const [fields, files] = await new Promise((resolve, reject) => {
+    // Parse form data with more debug information
+    const form = new IncomingForm({ 
+      keepExtensions: true,
+      multiples: true
+    });
+    
+    const { fields, files } = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
-        if (err) reject(err);
-        resolve([fields, files]);
+        if (err) {
+          console.error('Form parsing error:', err);
+          reject(err);
+          return;
+        }
+        
+        // Log structure to help debug
+        console.log('Fields received:', Object.keys(fields));
+        console.log('Files received:', Object.keys(files));
+        
+        resolve({ fields, files });
       });
     });
     
-    // Get the uploaded file
-    const file = files.file;
-    if (!file || !file.filepath) {
-      return res.status(400).json({ error: 'No file uploaded' });
+    // Handle file property differences in serverless environments
+    const fileKey = Object.keys(files)[0];
+    const file = files[fileKey];
+    
+    console.log('File object properties:', Object.keys(file));
+    
+    // Try different property paths that might contain the file path
+    const filePath = file.filepath || file.path || (file.toJSON && file.toJSON().filepath) || 
+                    (file[0] && (file[0].filepath || file[0].path));
+    
+    if (!file || !filePath) {
+      console.error('File upload issue - file object:', JSON.stringify(file).substring(0, 200));
+      return res.status(400).json({ error: 'No file uploaded or invalid file structure' });
     }
 
-    // Upload to Cloudinary
+    // Upload to Cloudinary with more error handling
     try {
-      const result = await cloudinary.uploader.upload(file.filepath, {
+      // Use the file path we determined above
+      const result = await cloudinary.uploader.upload(filePath, {
         folder: `bizbud/${siteId}`,
         resource_type: 'auto'
       });
       
-      // Clean up the temporary file
+      // Clean up the temporary file if it exists
       try {
-        if (fs.existsSync(file.filepath)) {
-          fs.unlinkSync(file.filepath);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
         }
       } catch (cleanupError) {
         console.warn('Failed to clean up temporary file:', cleanupError);
