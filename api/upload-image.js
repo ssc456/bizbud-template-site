@@ -79,21 +79,55 @@ export default async function handler(req, res) {
     
     console.log('File object properties:', Object.keys(file));
     
-    // Try different property paths that might contain the file path
-    const filePath = file.filepath || file.path || (file.toJSON && file.toJSON().filepath) || 
-                    (file[0] && (file[0].filepath || file[0].path));
-    
-    if (!file || !filePath) {
-      console.error('File upload issue - file object:', JSON.stringify(file).substring(0, 200));
-      return res.status(400).json({ error: 'No file uploaded or invalid file structure' });
+    // Enhanced file path detection for array-like file objects
+    let filePath;
+    if (file[0] && typeof file[0] === 'object') {
+      // Handle array-like structure from newer formidable versions
+      console.log('Detected array-like file structure');
+      filePath = file[0].filepath || file[0].path;
+      console.log('Using path from array element:', filePath);
+    } else {
+      // Try traditional paths
+      filePath = file.filepath || file.path || (file.toJSON && file.toJSON().filepath);
+      console.log('Using traditional file path:', filePath);
     }
-
+    
+    // Additional validation
+    if (!filePath) {
+      console.error('Could not determine file path from structure:', JSON.stringify(file, null, 2).substring(0, 500));
+      return res.status(400).json({ error: 'Could not process uploaded file - path not found' });
+    }
+    
+    // Verify the file exists before attempting to upload
+    if (!fs.existsSync(filePath)) {
+      console.error(`File path does not exist: ${filePath}`);
+      return res.status(400).json({ error: 'File not found at the specified path' });
+    }
+    
+    // Try to determine the file type before uploading
+    let fileType;
+    try {
+      const fileBuffer = fs.readFileSync(filePath, { encoding: null });
+      const fileSignature = fileBuffer.slice(0, 4).toString('hex');
+      console.log('File signature:', fileSignature);
+      
+      // Check common image signatures
+      if (fileSignature.startsWith('89504e47')) fileType = 'image/png';
+      else if (fileSignature.startsWith('ffd8ff')) fileType = 'image/jpeg';
+      else if (fileSignature.startsWith('47494638')) fileType = 'image/gif';
+      
+      console.log('Detected file type:', fileType || 'unknown');
+    } catch (err) {
+      console.warn('Could not read file for type detection:', err.message);
+    }
+    
     // Upload to Cloudinary with more error handling
     try {
-      // Use the file path we determined above
+      // Add more parameters to help Cloudinary process the file
       const result = await cloudinary.uploader.upload(filePath, {
         folder: `bizbud/${siteId}`,
-        resource_type: 'auto'
+        resource_type: 'auto',
+        format: fileType ? fileType.split('/')[1] : undefined
       });
       
       // Clean up the temporary file if it exists
