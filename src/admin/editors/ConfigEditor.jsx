@@ -1,4 +1,5 @@
 import FormField from '../components/FormField'
+import { availableThemes } from '../../themes';
 
 function ConfigEditor({ clientData, setClientData }) {
   const handleChange = (field, value) => {
@@ -36,6 +37,26 @@ function ConfigEditor({ clientData, setClientData }) {
             onChange={(e) => handleChange('primaryColor', e.target.value)}
             helpText="The main color theme for your website"
           />
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Theme
+          </label>
+          <select
+            value={clientData.theme || 'default'}
+            onChange={(e) => handleChange('theme', e.target.value)}
+            className="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          >
+            {availableThemes.map((theme) => (
+              <option key={theme} value={theme}>
+                {theme.charAt(0).toUpperCase() + theme.slice(1)}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-sm text-gray-500">
+            Select the visual theme for your site
+          </p>
         </div>
         
         <div className="mb-6">
