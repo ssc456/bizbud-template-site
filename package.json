@@ -16,7 +16,7 @@
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.1",
     "formidable": "^3.5.4",
-    "framer-motion": "^12.17.0",
+    "framer-motion": "^12.19.1",
     "lucide-react": "^0.514.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
