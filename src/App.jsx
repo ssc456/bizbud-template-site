@@ -12,7 +12,18 @@ import { initializePreviewDebugging, updatePreviewTitle } from './utils/previewH
 
 function App() {
   const [content, setContent] = useState(null);
-  const [config, setConfig] = useState(null);
+  const [config, setConfig] = useState({
+    theme: 'default',
+    primaryColor: 'blue',
+    showHero: true,
+    showAbout: true,
+    showServices: true,
+    showFeatures: true,
+    showTestimonials: true,
+    showGallery: true,
+    showContact: true,
+    showFAQ: true
+  });
   const [loading, setLoading] = useState(true);
   const [siteId, setSiteId] = useState('');
   const [isPreview, setIsPreview] = useState(false);
