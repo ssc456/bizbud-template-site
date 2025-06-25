@@ -44,7 +44,7 @@ function ConfigEditor({ clientData, setClientData }) {
             Theme
           </label>
           <select
-            value={clientData.theme || 'default'}
+            value={clientData.config?.theme || 'default'}
             onChange={(e) => handleChange('theme', e.target.value)}
             className="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
