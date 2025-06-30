@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 
-function AboutSection({ title, description, image, primaryColor }) {
+function AboutSection({ title, description, image, primaryColor, logoUrl }) {
   // Color mapping
   const colorClasses = {
     pink: {
@@ -63,9 +63,9 @@ function AboutSection({ title, description, image, primaryColor }) {
               
               {/* Main image */}
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                {image ? (
+                {logoUrl ? (
                   <img 
-                    src={image} 
+                    src={logoUrl} 
                     alt={title} 
                     className="w-full h-auto object-cover rounded-2xl" 
                   />
