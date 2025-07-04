@@ -1,27 +1,15 @@
 import { Redis } from '@upstash/redis';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
-// Inline Redis client
-const redis = (() => {
-  const url = process.env.KV_REST_API_URL?.trim();
-  const token = process.env.KV_REST_API_TOKEN?.trim();
-  
-  console.log('[Auth API] Redis env vars:', {
-    url: url ? 'Found' : 'Not found',
-    token: token ? 'Found' : 'Not found'
-  });
-
-  if (!url || !token) {
-    console.error('[Auth API] Missing Redis credentials');
-    return null;
-  }
-
-  return new Redis({ url, token });
-})();
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
 
 export default async function handler(req, res) {
-  // Handle CORS preflight requests
+  // CORS handling
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST');
@@ -33,50 +21,55 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    const { password, siteId } = req.body;
-    
-    console.log('[Auth API] Request for site:', siteId);
-    
-    if (!password || !siteId || !redis) {
-      return res.status(400).json({ 
-        error: !redis ? 'Redis connection not available' : 'Missing required fields'
-      });
-    }
+  const { siteId, password } = req.body;
+  
+  if (!siteId || !password) {
+    return res.status(400).json({ error: 'Site ID and password are required' });
+  }
 
-    // Get site settings from Redis
-    let siteSettings;
-    try {
-      siteSettings = await redis.get(`site:${siteId}:settings`);
-      console.log('[Auth API] Site settings:', siteSettings ? 'Found' : 'Not found');
-    } catch (getError) {
-      console.error('[Auth API] Error getting settings:', getError);
-      return res.status(500).json({ error: 'Failed to retrieve site settings' });
+  try {
+    // Get site settings with password hash
+    const siteSettings = await redis.get(`site:${siteId}:settings`);
+    
+    // SECURITY IMPROVEMENT: Remove default fallback
+    if (!siteSettings?.adminPasswordHash) {
+      return res.status(404).json({ error: 'Site not found or not configured' });
     }
     
-    // If site doesn't exist or no password is set, use default password (for development only)
-    const storedHash = siteSettings?.adminPasswordHash || '$2a$12$TDVpKTt9jaQVSoitO7KnI.ZLMT1efjmOlg/hgQ2uHW/KylSw.in7e';
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, siteSettings.adminPasswordHash);
     
-    // Compare password
-    const isValid = await bcrypt.compare(password, storedHash);
-    
-    if (!isValid) {
+    if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid password' });
     }
-
-    // Generate token
+    
+    // Generate session token and CSRF token
     const sessionToken = uuidv4();
+    const csrfToken = crypto.randomBytes(32).toString('hex');
     
-    // Store token in Redis
-    await redis.set(`auth:${sessionToken}`, siteId, { ex: 86400 });
+    // Store session with expiry (24 hours)
+    await redis.set(`auth:${sessionToken}`, siteId);
+    await redis.expire(`auth:${sessionToken}`, 24 * 60 * 60); // 24 hours
     
+    // Store CSRF token with the same expiry
+    await redis.set(`csrf:${sessionToken}`, csrfToken);
+    await redis.expire(`csrf:${sessionToken}`, 24 * 60 * 60); // 24 hours
+    
+    // SECURITY IMPROVEMENT: Set HttpOnly cookie instead of returning token for localStorage
+    res.setHeader('Set-Cookie', [
+      `adminToken=${sessionToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${24 * 60 * 60}`,
+      `siteId=${siteId}; Path=/; Max-Age=${24 * 60 * 60}`
+    ]);
+    
+    // Return success with CSRF token
     return res.status(200).json({ 
-      success: true, 
-      token: sessionToken,
-      message: 'Login successful'
+      success: true,
+      csrfToken,
+      message: 'Authentication successful' 
     });
+    
   } catch (error) {
-    console.error('[Auth API] Error:', error);
-    return res.status(500).json({ error: 'Authentication failed: ' + error.message });
+    console.error('Auth error:', error);
+    return res.status(500).json({ error: 'Authentication failed' });
   }
 }

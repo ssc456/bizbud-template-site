@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { extractSiteId } from '../utils/siteId';
 
 export default function AdminLogin() {
@@ -7,39 +8,53 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  const navigate = useNavigate();
+  
   useEffect(() => {
     setSiteId(extractSiteId());
   }, []);
   
   async function handleSubmit(e) {
     e.preventDefault();
+    
+    if (!password.trim()) {
+      setError('Password is required');
+      return;
+    }
+    
     setLoading(true);
     setError('');
     
     try {
-      console.log('Submitting login for site:', siteId);
-      
       const response = await fetch('/api/auth', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, siteId })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          siteId,
+          password
+        }),
+        credentials: 'include' // Important for cookies
       });
       
       const data = await response.json();
-      console.log('Auth response:', data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
       }
       
-      // Save token
-      localStorage.setItem('adminToken', data.token);
+      // Store CSRF token in sessionStorage (cleared when browser is closed)
+      if (data.csrfToken) {
+        sessionStorage.setItem('csrfToken', data.csrfToken);
+      }
       
-      // Redirect to admin dashboard
-      window.location.href = '/admin/dashboard';
-    } catch (error) {
-      console.error('Auth error:', error);
-      setError(error.message);
+      // Redirect to dashboard
+      navigate('/admin/dashboard');
+      
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }

@@ -30,11 +30,46 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token');
     return res.status(200).end();
   }
   
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // For admin requests, validate authentication
+  const requestPath = req.url;
+  const isAdminRequest = req.headers.referer?.includes('/admin/dashboard');
+  
+  if (isAdminRequest) {
+    // Extract token from cookie
+    const cookies = req.cookies || {};
+    const authToken = cookies.adminToken;
+    const { siteId } = req.query;
+    
+    if (!authToken) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Additional security check - token must be for the requested site
+    try {
+      const tokenSiteId = await redis.get(`auth:${authToken}`);
+      if (!tokenSiteId || tokenSiteId !== siteId) {
+        return res.status(403).json({ error: 'Not authorized to access this site' });
+      }
+
+      // Verify CSRF token
+      const csrfHeader = req.headers['x-csrf-token'];
+      const storedCsrfToken = await redis.get(`csrf:${authToken}`);
+
+      if (!csrfHeader || !storedCsrfToken || csrfHeader !== storedCsrfToken) {
+        return res.status(403).json({ error: 'Invalid CSRF token' });
+      }
+    } catch (authError) {
+      console.error('[Get Data API] Auth validation error:', authError);
+      return res.status(500).json({ error: 'Auth validation failed' });
+    }
   }
 
   try {

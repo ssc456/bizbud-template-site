@@ -36,20 +36,43 @@ export default function AdminDashboard() {
 
   // Get the site ID and fetch initial data
   useEffect(() => {
+    if (location.pathname === '/admin/dashboard/sites') {
+      setLoading(false);
+      return;
+    }
+    
     const extractedSiteId = extractSiteId();
     setSiteId(extractedSiteId);
     
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
-          setError('Not authenticated');
+        const extractedSiteId = extractSiteId();
+        
+        // Get CSRF token from sessionStorage
+        const csrfToken = sessionStorage.getItem('csrfToken');
+        
+        // Verify token is valid for this site
+        const validateResponse = await fetch(`/api/validate-token?siteId=${extractedSiteId}`, {
+          credentials: 'include', // Important for cookies
+          headers: {
+            'X-CSRF-Token': csrfToken || ''
+          }
+        });
+        
+        if (!validateResponse.ok) {
+          // Force logout if token isn't valid for this site
           window.location.href = '/admin';
           return;
         }
         
-        console.log('Fetching data for site:', extractedSiteId);
-        const response = await fetch(`/api/get-client-data?siteId=${extractedSiteId}`);
+        // Continue with data fetching
+        const response = await fetch(`/api/get-client-data?siteId=${extractedSiteId}`, {
+          credentials: 'include', // Important for cookies
+          headers: {
+            'X-CSRF-Token': csrfToken || ''
+          }
+        });
+        
         if (!response.ok) {
           throw new Error('Failed to load site data');
         }
@@ -57,7 +80,6 @@ export default function AdminDashboard() {
         const data = await response.json();
         setClientData(data);
         setOriginalData(JSON.parse(JSON.stringify(data))); // Deep copy
-        setLoading(false);
       } catch (err) {
         console.error('Dashboard data error:', err);
         setError(err.message);
@@ -65,9 +87,9 @@ export default function AdminDashboard() {
         setLoading(false);
       }
     };
-    
+
     fetchData();
-  }, []);
+  }, [location.pathname]);
   
   // Update active section when URL changes
   useEffect(() => {
@@ -82,14 +104,16 @@ export default function AdminDashboard() {
     
     setSaving(true);
     try {
-      const token = localStorage.getItem('adminToken');
+      // Get CSRF token from sessionStorage
+      const csrfToken = sessionStorage.getItem('csrfToken');
       
       const response = await fetch('/api/save-client-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'X-CSRF-Token': csrfToken || ''
         },
+        credentials: 'include', // Important for cookies
         body: JSON.stringify({ clientData })
       });
       
@@ -128,6 +152,32 @@ export default function AdminDashboard() {
     { id: 'config', label: 'Display Settings', path: '/admin/dashboard/config' },
     // { id: 'media', label: 'Media Library', path: '/admin/dashboard/media' },
   ];
+
+  const handleLogout = async () => {
+    try {
+      const csrfToken = sessionStorage.getItem('csrfToken');
+      
+      // Call logout API
+      await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || ''
+        },
+        credentials: 'include'
+      });
+      
+      // Clear client-side storage
+      sessionStorage.removeItem('csrfToken');
+      
+      // Redirect to login
+      window.location.href = '/admin';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback: just redirect
+      window.location.href = '/admin';
+    }
+  };
 
   if (loading) {
     return (
@@ -194,10 +244,7 @@ export default function AdminDashboard() {
           </button>
           
           <button
-            onClick={() => {
-              localStorage.removeItem('adminToken');
-              window.location.href = '/admin';
-            }}
+            onClick={handleLogout}
             className="w-full px-4 py-2 text-sm text-gray-300 rounded-md hover:bg-gray-700 mt-2"
           >
             Logout

@@ -19,17 +19,40 @@ const redis = (() => {
 })();
 
 export default async function handler(req, res) {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token');
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Verify authentication
-  const authToken = req.headers.authorization?.split(' ')[1];
-  
+  // Extract token from cookie
+  const cookies = req.cookies || {};
+  const authToken = cookies.adminToken;
+
   if (!authToken) {
     return res.status(401).json({ error: 'Authentication required' });
   }
-  
+
+  // Verify CSRF token
+  const csrfHeader = req.headers['x-csrf-token'];
+  const storedCsrfToken = await redis.get(`csrf:${authToken}`);
+
+  if (!csrfHeader || !storedCsrfToken || csrfHeader !== storedCsrfToken) {
+    return res.status(403).json({ error: 'Invalid CSRF token' });
+  }
+
+  // Get the site ID associated with this token
+  const siteId = await redis.get(`auth:${authToken}`);
+  if (!siteId) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+
   if (!redis) {
     return res.status(503).json({ error: 'Database connection unavailable' });
   }
