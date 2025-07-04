@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { format } from 'date-fns';
+import { format, parseISO, addMinutes } from 'date-fns';
 import { toast } from 'react-toastify';
 
 export default function AppointmentsManager() {
@@ -26,11 +26,19 @@ export default function AppointmentsManager() {
       { value: 60, enabled: true, label: '1 hour' }
     ]
   });
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
     fetchSettings();
     fetchAppointments(selectedDate);
   }, [selectedDate]);
+  
+  // Add this effect
+  useEffect(() => {
+    if (view === 'list') {
+      fetchAppointmentsList();
+    }
+  }, [view]);
   
   const fetchSettings = async () => {
     const csrfToken = sessionStorage.getItem('csrfToken');
@@ -54,11 +62,127 @@ export default function AppointmentsManager() {
   };
   
   const fetchAppointments = async (date) => {
-    // Implementation to fetch appointments for the selected date/range
+    try {
+      const csrfToken = sessionStorage.getItem('csrfToken');
+      const extractedSiteId = window.location.hostname.split('.')[0];
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      
+      const response = await fetch(
+        `/api/appointments?action=list&siteId=${extractedSiteId}&date=${formattedDate}`, 
+        {
+          credentials: 'include',
+          headers: { 'X-CSRF-Token': csrfToken || '' }
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAppointments(data.appointments || []);
+      } else {
+        console.error('Error fetching appointments:', await response.text());
+        toast.error('Failed to load appointments');
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      toast.error('Failed to load appointments');
+    }
   };
   
+  const fetchAppointmentsList = async (start, end) => {
+    setIsLoading(true);
+    try {
+      const csrfToken = sessionStorage.getItem('csrfToken');
+      const extractedSiteId = window.location.hostname.split('.')[0];
+      
+      let url = `/api/appointments?action=list&siteId=${extractedSiteId}`;
+      if (start) url += `&start=${start}`;
+      if (end) url += `&end=${end}`;
+      
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: { 'X-CSRF-Token': csrfToken || '' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAppointments(data.appointments || []);
+      } else {
+        toast.error('Failed to load appointments');
+      }
+    } catch (error) {
+      console.error('Error fetching appointments list:', error);
+      toast.error('Failed to load appointments');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const saveSettings = async () => {
-    // Implementation to save appointment settings
+    try {
+      const csrfToken = sessionStorage.getItem('csrfToken');
+      const extractedSiteId = window.location.hostname.split('.')[0];
+      
+      console.log("Saving appointment settings:", settings);
+      
+      const response = await fetch(`/api/appointments?action=settings&siteId=${extractedSiteId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || ''
+        },
+        credentials: 'include',
+        body: JSON.stringify({ settings })
+      });
+      
+      if (response.ok) {
+        toast.success('Appointment settings saved successfully');
+      } else {
+        const errorData = await response.json();
+        toast.error(`Failed to save settings: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast.error('Failed to save appointment settings');
+    }
+  };
+  
+  const handleEditAppointment = (appointment) => {
+    // For now, just log the appointment - this would open a modal in a complete implementation
+    console.log('Edit appointment:', appointment);
+    toast.info('Editing appointments will be implemented in the next version');
+  };
+
+  const handleCancelAppointment = async (appointmentId) => {
+    if (!confirm('Are you sure you want to cancel this appointment?')) return;
+    
+    try {
+      const csrfToken = sessionStorage.getItem('csrfToken');
+      const extractedSiteId = window.location.hostname.split('.')[0];
+      
+      const response = await fetch(
+        `/api/appointments?action=cancel&siteId=${extractedSiteId}&appointmentId=${appointmentId}`, 
+        {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: { 'X-CSRF-Token': csrfToken || '' }
+        }
+      );
+      
+      if (response.ok) {
+        toast.success('Appointment cancelled successfully');
+        // Refresh appointments
+        if (view === 'calendar') {
+          fetchAppointments(selectedDate);
+        } else {
+          fetchAppointmentsList();
+        }
+      } else {
+        toast.error('Failed to cancel appointment');
+      }
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      toast.error('Failed to cancel appointment');
+    }
   };
   
   return (
@@ -104,24 +228,33 @@ export default function AppointmentsManager() {
             <div className="space-y-3">
               {appointments.length === 0 ? (
                 <p className="text-gray-500">No appointments scheduled for this day.</p>
-              ) : (
+              ) : 
                 appointments.map(appointment => (
                   <div key={appointment.id} className="p-3 border rounded-lg flex justify-between">
                     <div>
-                      <p className="font-medium">{appointment.customerName}</p>
+                      <p className="font-medium">{appointment.customer?.name || 'No name'}</p>
                       <p className="text-sm text-gray-500">
-                        {format(new Date(appointment.startTime), 'h:mm a')} - 
-                        {format(new Date(appointment.endTime), 'h:mm a')}
+                        {appointment.date} at {appointment.time}
                       </p>
                       <p className="text-sm">{appointment.service || 'General Appointment'}</p>
                     </div>
                     <div className="flex items-center">
-                      <button className="text-blue-600 mr-2">Edit</button>
-                      <button className="text-red-600">Cancel</button>
+                      <button 
+                        onClick={() => handleEditAppointment(appointment)} 
+                        className="text-blue-600 mr-2"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleCancelAppointment(appointment.id)}
+                        className="text-red-600"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
                 ))
-              )}
+              }
             </div>
           </div>
         </div>
@@ -234,6 +367,9 @@ export default function AppointmentsManager() {
             <button
               onClick={async () => {
                 try {
+                  const csrfToken = sessionStorage.getItem('csrfToken');
+                  const extractedSiteId = window.location.hostname.split('.')[0];
+                  
                   const response = await fetch(`/api/appointments?action=cleanup&siteId=${extractedSiteId}`, {
                     method: 'POST',
                     headers: { 'X-CSRF-Token': csrfToken || '' }
@@ -256,8 +392,83 @@ export default function AppointmentsManager() {
       
       {view === 'list' && (
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="font-medium text-lg mb-4">Upcoming Appointments</h3>
-          {/* List view of appointments with filtering options */}
+          <h3 className="font-medium text-lg mb-4">All Appointments</h3>
+          
+          <div className="mb-4 flex items-center space-x-2">
+            <select 
+              className="border rounded p-2"
+              onChange={(e) => {
+                const value = e.target.value;
+                let startDate, endDate;
+                
+                if (value === 'upcoming') {
+                  startDate = format(new Date(), 'yyyy-MM-dd');
+                  // No end date for upcoming
+                } else if (value === 'past') {
+                  endDate = format(new Date(), 'yyyy-MM-dd');
+                  // No start date for past
+                } else if (value === 'month') {
+                  const now = new Date();
+                  startDate = format(new Date(now.getFullYear(), now.getMonth(), 1), 'yyyy-MM-dd');
+                  endDate = format(new Date(now.getFullYear(), now.getMonth() + 1, 0), 'yyyy-MM-dd');
+                }
+                
+                fetchAppointmentsList(startDate, endDate);
+              }}
+            >
+              <option value="upcoming">Upcoming</option>
+              <option value="past">Past</option>
+              <option value="month">This Month</option>
+              <option value="all">All Time</option>
+            </select>
+            
+            <button 
+              className="px-3 py-1 bg-blue-600 text-white rounded"
+              onClick={() => fetchAppointmentsList()}
+            >
+              Refresh
+            </button>
+          </div>
+          
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {appointments.length === 0 ? (
+              <p className="text-gray-500">No appointments found.</p>
+            ) : 
+              appointments.map(appointment => (
+                <div key={appointment.id} className="p-3 border rounded-lg">
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="font-medium">{appointment.customer?.name || 'No name'}</p>
+                      <p className="text-sm text-gray-500">
+                        {appointment.date} at {appointment.time}
+                      </p>
+                    </div>
+                    <div className="flex items-center">
+                      <button 
+                        onClick={() => handleEditAppointment(appointment)}
+                        className="text-blue-600 mr-2"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleCancelAppointment(appointment.id)}
+                        className="text-red-600"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-1 text-sm">
+                    <p><span className="font-medium">Email:</span> {appointment.customer?.email}</p>
+                    <p><span className="font-medium">Phone:</span> {appointment.customer?.phone}</p>
+                    {appointment.customer?.notes && (
+                      <p><span className="font-medium">Notes:</span> {appointment.customer.notes}</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            }
+          </div>
         </div>
       )}
     </div>

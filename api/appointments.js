@@ -67,6 +67,12 @@ export default async function handler(req, res) {
         }
         return await cancelAppointment(req, res, siteId);
         
+      case 'cleanup':
+        if (req.method !== 'POST') {
+          return res.status(405).json({ error: 'Method not allowed' });
+        }
+        return await cleanupAppointments(req, res, siteId);
+        
       default:
         return res.status(400).json({ error: 'Invalid action' });
     }
@@ -160,11 +166,16 @@ async function getAvailability(req, res, siteId) {
     const dateObj = parseISO(date);
     const dayOfWeek = format(dateObj, 'EEEE').toLowerCase();
     
+    console.log(`Checking availability for ${date} (${dayOfWeek})`);
+    
     // Check if this day is enabled
     const daySettings = settings.workingHours[dayOfWeek];
     if (!daySettings || !daySettings.enabled) {
+      console.log(`${dayOfWeek} is not enabled in settings`);
       return res.status(200).json({ availableSlots: [] });
     }
+    
+    console.log(`${dayOfWeek} is enabled: ${daySettings.start}-${daySettings.end}`);
     
     // Get already booked appointments for this day
     const bookedAppointments = await redis.get(`site:${siteId}:appointments:bookings`) || [];
@@ -172,13 +183,24 @@ async function getAvailability(req, res, siteId) {
       appt.date === date
     );
     
-    // Add the actual date to the bookings so generateTimeSlots can use it
+    // Create booking objects with the target date included
     const bookingsWithDate = todaysBookings.map(booking => ({
       ...booking,
-      dateObject: dateObj // Add the parsed date object
+      dateObject: dateObj
     }));
     
-    // Generate time slots based on working hours
+    // If there are no bookings, create a placeholder with the date
+    if (bookingsWithDate.length === 0) {
+      bookingsWithDate.push({
+        dateObject: dateObj,
+        date: date,
+        placeholder: true
+      });
+    }
+    
+    console.log(`Found ${todaysBookings.length} bookings for ${date}`);
+    
+    // Generate time slots
     const slots = generateTimeSlots(
       daySettings.start,
       daySettings.end,
@@ -480,52 +502,86 @@ async function cleanupOldAppointments(siteId) {
   }
 }
 
+// New function to handle cleanup request
+async function cleanupAppointments(req, res, siteId) {
+  try {
+    const removed = await cleanupOldAppointments(siteId);
+    return res.status(200).json({ success: true, removed });
+  } catch (error) {
+    console.error(`[Appointments API] Error cleaning up appointments:`, error);
+    return res.status(500).json({ error: 'Failed to clean up appointments' });
+  }
+}
+
 // Helper function to generate available time slots
 function generateTimeSlots(startTime, endTime, duration, bufferTime, bookedAppointments) {
+  console.log("Generating time slots with:", { startTime, endTime, duration, bufferTime });
+  
   const slots = [];
   const now = new Date();
   const today = format(now, 'yyyy-MM-dd');
   
-  // Get date from first appointment or use current date
-  // This is just to extract date info from appointment objects
-  const appointmentDate = bookedAppointments.length > 0 
-    ? parseISO(bookedAppointments[0].date)
-    : now;
+  // Get the target date from the first appointment or use a default date
+  // that's definitely not today (to avoid filtering future dates)
+  let targetDate;
+  if (bookedAppointments.length > 0 && bookedAppointments[0].dateObject) {
+    targetDate = bookedAppointments[0].dateObject;
+  } else if (bookedAppointments.length > 0 && bookedAppointments[0].date) {
+    targetDate = parseISO(bookedAppointments[0].date);
+  } else {
+    // Use tomorrow as a safe default if no date is available
+    targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 1);
+  }
   
-  // Parse start and end times with the CORRECT DATE
-  const baseDate = new Date(appointmentDate);
-  baseDate.setHours(0, 0, 0, 0); // Reset time portion
+  console.log("Target date for slots:", targetDate);
   
+  // Use the target date for time parsing
+  const baseDate = new Date(targetDate);
+  baseDate.setHours(0, 0, 0, 0);
+  
+  // Parse start and end times - IMPORTANT: use 'HH:mm' format for 24-hour time
   const start = parse(startTime, 'HH:mm', baseDate);
   const end = parse(endTime, 'HH:mm', baseDate);
+  
+  console.log("Time range:", { 
+    start: format(start, 'yyyy-MM-dd HH:mm:ss'),
+    end: format(end, 'yyyy-MM-dd HH:mm:ss') 
+  });
   
   // Generate slots
   let currentSlot = start;
   while (currentSlot < end) {
-    const slotEnd = addMinutes(currentSlot, parseInt(duration));
+    const slotEnd = addMinutes(currentSlot, parseInt(duration) || 30);
     
     if (slotEnd <= end) {
-      // Check if slot is available
+      // Format the time slot
       const timeString = format(currentSlot, 'h:mm a');
-      const isBooked = bookedAppointments.some(appt => {
-        return appt.time === timeString;
-      });
       
-      // Skip slots in the past for today ONLY
+      // Check if slot is booked
+      const isBooked = bookedAppointments.some(appt => 
+        appt.time === timeString
+      );
+      
+      // Only check for past times if we're dealing with today
       const slotDate = format(currentSlot, 'yyyy-MM-dd');
-      const isInPast = slotDate === today && currentSlot < now;
+      const isInPast = slotDate === today && currentSlot <= now;
       
       if (!isBooked && !isInPast) {
+        console.log(`Adding available slot: ${timeString}`);
         slots.push({
           time: timeString,
           available: true
         });
+      } else {
+        console.log(`Skipping slot ${timeString}: ${isBooked ? 'booked' : 'in past'}`);
       }
     }
     
-    // Move to next slot (duration + buffer)
-    currentSlot = addMinutes(currentSlot, parseInt(duration) + parseInt(bufferTime));
+    // Move to next slot
+    currentSlot = addMinutes(currentSlot, parseInt(duration) || 30 + parseInt(bufferTime) || 0);
   }
   
+  console.log(`Generated ${slots.length} available time slots`);
   return slots;
 }
