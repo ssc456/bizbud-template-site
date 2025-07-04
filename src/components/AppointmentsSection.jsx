@@ -21,13 +21,15 @@ export default function AppointmentsSection() {
   // Extract site ID
   const siteId = window.location.hostname.split('.')[0];
   
-  // Fetch available dates for the next month
+  // Month view state
+  const [viewMonth, setViewMonth] = useState(() => {
+    const current = new Date();
+    return { year: current.getFullYear(), month: current.getMonth() + 1 };
+  });
+  
+  // Fetch available dates for the current month
   useEffect(() => {
-    const fetchAvailableDates = async () => {
-      const currentDate = new Date();
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth() + 1;
-      
+    const fetchAvailableDates = async (year, month) => {
       try {
         const response = await fetch(`/api/appointments?action=availability&siteId=${siteId}&year=${year}&month=${month}`);
         if (response.ok) {
@@ -40,8 +42,8 @@ export default function AppointmentsSection() {
       }
     };
     
-    fetchAvailableDates();
-  }, []);
+    fetchAvailableDates(viewMonth.year, viewMonth.month);
+  }, [viewMonth]);
   
   // Fetch available times when a date is selected
   useEffect(() => {
@@ -147,6 +149,37 @@ export default function AppointmentsSection() {
                 {error}
               </div>
             )}
+            
+            {/* Month Navigation */}
+            <div className="flex justify-between items-center mb-4">
+              <button 
+                onClick={() => {
+                  const newMonth = viewMonth.month === 1 
+                    ? { year: viewMonth.year - 1, month: 12 }
+                    : { year: viewMonth.year, month: viewMonth.month - 1 };
+                  setViewMonth(newMonth);
+                }}
+                className="p-2 border rounded"
+              >
+                ← Previous Month
+              </button>
+              
+              <h3 className="text-lg font-medium">
+                {new Date(viewMonth.year, viewMonth.month - 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+              </h3>
+              
+              <button 
+                onClick={() => {
+                  const newMonth = viewMonth.month === 12 
+                    ? { year: viewMonth.year + 1, month: 1 }
+                    : { year: viewMonth.year, month: viewMonth.month + 1 };
+                  setViewMonth(newMonth);
+                }}
+                className="p-2 border rounded"
+              >
+                Next Month →
+              </button>
+            </div>
             
             {/* Step 1: Date Selection */}
             {step === 1 && (

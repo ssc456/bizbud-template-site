@@ -227,6 +227,30 @@ export default function AppointmentsManager() {
           >
             Save Settings
           </button>
+          
+          {/* Maintenance section */}
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <h4 className="font-medium mb-2">Maintenance</h4>
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch(`/api/appointments?action=cleanup&siteId=${extractedSiteId}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': csrfToken || '' }
+                  });
+                  if (response.ok) {
+                    const data = await response.json();
+                    toast.success(`Removed ${data.removed} old appointments`);
+                  }
+                } catch (error) {
+                  toast.error('Failed to clean up old appointments');
+                }
+              }}
+              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            >
+              Clean Up Old Appointments
+            </button>
+          </div>
         </div>
       )}
       

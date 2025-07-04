@@ -172,13 +172,19 @@ async function getAvailability(req, res, siteId) {
       appt.date === date
     );
     
+    // Add the actual date to the bookings so generateTimeSlots can use it
+    const bookingsWithDate = todaysBookings.map(booking => ({
+      ...booking,
+      dateObject: dateObj // Add the parsed date object
+    }));
+    
     // Generate time slots based on working hours
     const slots = generateTimeSlots(
       daySettings.start,
       daySettings.end,
       settings.duration,
       settings.bufferTime,
-      todaysBookings
+      bookingsWithDate
     );
     
     return res.status(200).json({ 
@@ -445,15 +451,53 @@ async function cancelAppointment(req, res, siteId) {
   }
 }
 
+// Add this function to periodically clean up old appointments
+
+async function cleanupOldAppointments(siteId) {
+  try {
+    // Get all bookings
+    const bookings = await redis.get(`site:${siteId}:appointments:bookings`) || [];
+    
+    // Keep only appointments newer than 6 months
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const dateThreshold = format(sixMonthsAgo, 'yyyy-MM-dd');
+    
+    const filteredBookings = bookings.filter(booking => 
+      booking.date > dateThreshold || booking.status === 'upcoming'
+    );
+    
+    // Only update if we removed something
+    if (filteredBookings.length < bookings.length) {
+      await redis.set(`site:${siteId}:appointments:bookings`, filteredBookings);
+      return bookings.length - filteredBookings.length; // Number removed
+    }
+    
+    return 0;
+  } catch (error) {
+    console.error('Error cleaning up old appointments:', error);
+    return -1;
+  }
+}
+
 // Helper function to generate available time slots
 function generateTimeSlots(startTime, endTime, duration, bufferTime, bookedAppointments) {
   const slots = [];
   const now = new Date();
   const today = format(now, 'yyyy-MM-dd');
   
-  // Parse start and end times
-  const start = parse(startTime, 'HH:mm', new Date());
-  const end = parse(endTime, 'HH:mm', new Date());
+  // Get date from first appointment or use current date
+  // This is just to extract date info from appointment objects
+  const appointmentDate = bookedAppointments.length > 0 
+    ? parseISO(bookedAppointments[0].date)
+    : now;
+  
+  // Parse start and end times with the CORRECT DATE
+  const baseDate = new Date(appointmentDate);
+  baseDate.setHours(0, 0, 0, 0); // Reset time portion
+  
+  const start = parse(startTime, 'HH:mm', baseDate);
+  const end = parse(endTime, 'HH:mm', baseDate);
   
   // Generate slots
   let currentSlot = start;
@@ -467,9 +511,9 @@ function generateTimeSlots(startTime, endTime, duration, bufferTime, bookedAppoi
         return appt.time === timeString;
       });
       
-      // Skip slots in the past for today
-      const isInPast = format(currentSlot, 'yyyy-MM-dd') === today && 
-                       currentSlot < now;
+      // Skip slots in the past for today ONLY
+      const slotDate = format(currentSlot, 'yyyy-MM-dd');
+      const isInPast = slotDate === today && currentSlot < now;
       
       if (!isBooked && !isInPast) {
         slots.push({
