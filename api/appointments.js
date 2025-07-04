@@ -1,0 +1,487 @@
+import { Redis } from '@upstash/redis';
+import { addMinutes, parse, format, parseISO, isAfter } from 'date-fns';
+
+// Initialize Redis client
+const redis = (() => {
+  const url = process.env.KV_REST_API_URL?.trim();
+  const token = process.env.KV_REST_API_TOKEN?.trim();
+  
+  if (!url || !token) {
+    console.error('[Appointments API] Missing Redis credentials');
+    return null;
+  }
+
+  return new Redis({ url, token });
+})();
+
+export default async function handler(req, res) {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token');
+    return res.status(200).end();
+  }
+  
+  const { action, siteId } = req.query;
+  
+  if (!siteId) {
+    return res.status(400).json({ error: 'Site ID is required' });
+  }
+  
+  if (!redis) {
+    return res.status(500).json({ error: 'Database connection unavailable' });
+  }
+  
+  try {
+    switch (action) {
+      case 'settings':
+        if (req.method === 'GET') {
+          return await getSettings(req, res, siteId);
+        } else if (req.method === 'POST') {
+          return await saveSettings(req, res, siteId);
+        }
+        break;
+        
+      case 'availability':
+        return await getAvailability(req, res, siteId);
+        
+      case 'book':
+        if (req.method !== 'POST') {
+          return res.status(405).json({ error: 'Method not allowed' });
+        }
+        return await bookAppointment(req, res, siteId);
+        
+      case 'list':
+        return await listAppointments(req, res, siteId);
+        
+      case 'update':
+        if (req.method !== 'PUT') {
+          return res.status(405).json({ error: 'Method not allowed' });
+        }
+        return await updateAppointment(req, res, siteId);
+        
+      case 'cancel':
+        if (req.method !== 'DELETE') {
+          return res.status(405).json({ error: 'Method not allowed' });
+        }
+        return await cancelAppointment(req, res, siteId);
+        
+      default:
+        return res.status(400).json({ error: 'Invalid action' });
+    }
+    
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (error) {
+    console.error(`[Appointments API] Error:`, error);
+    return res.status(500).json({ error: 'Server error processing appointment request' });
+  }
+}
+
+// Handler functions for each action
+async function getSettings(req, res, siteId) {
+  const settings = await redis.get(`site:${siteId}:appointments:settings`);
+  
+  // If no settings exist, return defaults
+  if (!settings) {
+    const defaultSettings = {
+      duration: 30,
+      bufferTime: 5,
+      workingHours: {
+        monday: { start: '09:00', end: '17:00', enabled: true },
+        tuesday: { start: '09:00', end: '17:00', enabled: true },
+        wednesday: { start: '09:00', end: '17:00', enabled: true },
+        thursday: { start: '09:00', end: '17:00', enabled: true },
+        friday: { start: '09:00', end: '17:00', enabled: true },
+        saturday: { start: '10:00', end: '15:00', enabled: false },
+        sunday: { start: '10:00', end: '15:00', enabled: false }
+      },
+      durations: [
+        { value: 15, enabled: true, label: '15 minutes' },
+        { value: 30, enabled: true, label: '30 minutes' },
+        { value: 60, enabled: true, label: '1 hour' }
+      ]
+    };
+    return res.status(200).json(defaultSettings);
+  }
+  
+  return res.status(200).json(settings);
+}
+
+async function saveSettings(req, res, siteId) {
+  const { settings } = req.body;
+  
+  if (!settings) {
+    return res.status(400).json({ error: 'Settings object is required' });
+  }
+  
+  // Validate the settings object
+  try {
+    // Basic validation
+    if (!settings.workingHours || !settings.durations) {
+      return res.status(400).json({ error: 'Invalid settings format' });
+    }
+    
+    // Save to Redis
+    await redis.set(`site:${siteId}:appointments:settings`, settings);
+    
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error(`[Appointments API] Error saving settings:`, error);
+    return res.status(500).json({ error: 'Failed to save settings' });
+  }
+}
+
+async function getAvailability(req, res, siteId) {
+  const { date, year, month } = req.query;
+  
+  // Get the settings
+  const settings = await redis.get(`site:${siteId}:appointments:settings`) || {
+    duration: 30,
+    bufferTime: 5,
+    workingHours: {
+      monday: { start: '09:00', end: '17:00', enabled: true },
+      tuesday: { start: '09:00', end: '17:00', enabled: true },
+      wednesday: { start: '09:00', end: '17:00', enabled: true },
+      thursday: { start: '09:00', end: '17:00', enabled: true },
+      friday: { start: '09:00', end: '17:00', enabled: true },
+      saturday: { start: '10:00', end: '15:00', enabled: false },
+      sunday: { start: '10:00', end: '15:00', enabled: false }
+    },
+    durations: [
+      { value: 15, enabled: true, label: '15 minutes' },
+      { value: 30, enabled: true, label: '30 minutes' },
+      { value: 60, enabled: true, label: '1 hour' }
+    ]
+  };
+  
+  // If date is provided, get available time slots for that day
+  if (date) {
+    const dateObj = parseISO(date);
+    const dayOfWeek = format(dateObj, 'EEEE').toLowerCase();
+    
+    // Check if this day is enabled
+    const daySettings = settings.workingHours[dayOfWeek];
+    if (!daySettings || !daySettings.enabled) {
+      return res.status(200).json({ availableSlots: [] });
+    }
+    
+    // Get already booked appointments for this day
+    const bookedAppointments = await redis.get(`site:${siteId}:appointments:bookings`) || [];
+    const todaysBookings = bookedAppointments.filter(appt => 
+      appt.date === date
+    );
+    
+    // Generate time slots based on working hours
+    const slots = generateTimeSlots(
+      daySettings.start,
+      daySettings.end,
+      settings.duration,
+      settings.bufferTime,
+      todaysBookings
+    );
+    
+    return res.status(200).json({ 
+      availableSlots: slots,
+      durations: settings.durations.filter(d => d.enabled) 
+    });
+  }
+  
+  // If year and month are provided, get available dates for that month
+  if (year && month) {
+    // Generate all dates in this month
+    const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+    const availableDates = [];
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(parseInt(year), parseInt(month) - 1, day);
+      
+      // Skip dates in the past
+      if (isAfter(currentDate, new Date())) {
+        const dayOfWeek = format(currentDate, 'EEEE').toLowerCase();
+        const daySettings = settings.workingHours[dayOfWeek];
+        
+        if (daySettings && daySettings.enabled) {
+          availableDates.push(format(currentDate, 'yyyy-MM-dd'));
+        }
+      }
+    }
+    
+    return res.status(200).json({ availableDates });
+  }
+  
+  return res.status(400).json({ error: 'Date or year/month parameters required' });
+}
+
+async function bookAppointment(req, res, siteId) {
+  const { date, time, duration, customer } = req.body;
+  
+  if (!date || !time || !customer) {
+    return res.status(400).json({ error: 'Missing required booking information' });
+  }
+  
+  // Validate customer data
+  if (!customer.name || !customer.email || !customer.phone) {
+    return res.status(400).json({ error: 'Customer information incomplete' });
+  }
+  
+  try {
+    // Check if slot is still available
+    const dateObj = parseISO(date);
+    const startTime = parse(time, 'h:mm a', dateObj);
+    const endTime = addMinutes(startTime, parseInt(duration) || 30);
+    
+    // Get existing bookings
+    const bookings = await redis.get(`site:${siteId}:appointments:bookings`) || [];
+    
+    // Check for conflicts
+    const hasConflict = bookings.some(booking => {
+      if (booking.date !== date) return false;
+      
+      const bookingStart = parse(booking.time, 'h:mm a', dateObj);
+      const bookingEnd = addMinutes(bookingStart, parseInt(booking.duration) || 30);
+      
+      return (
+        (startTime >= bookingStart && startTime < bookingEnd) ||
+        (endTime > bookingStart && endTime <= bookingEnd) ||
+        (startTime <= bookingStart && endTime >= bookingEnd)
+      );
+    });
+    
+    if (hasConflict) {
+      return res.status(409).json({ 
+        error: 'This time slot is no longer available. Please select another time.' 
+      });
+    }
+    
+    // Create appointment
+    const appointment = {
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+      date,
+      time,
+      duration: duration || 30,
+      customer,
+      status: 'confirmed',
+      createdAt: new Date().toISOString()
+    };
+    
+    // Add to bookings
+    bookings.push(appointment);
+    
+    // Save updated bookings
+    await redis.set(`site:${siteId}:appointments:bookings`, bookings);
+    
+    // Return success
+    return res.status(200).json({ 
+      success: true,
+      appointment
+    });
+  } catch (error) {
+    console.error(`[Appointments API] Error booking appointment:`, error);
+    return res.status(500).json({ error: 'Failed to book appointment' });
+  }
+}
+
+async function listAppointments(req, res, siteId) {
+  try {
+    // Check if this is an admin request
+    const isAdminRequest = req.headers.referer?.includes('/admin/dashboard');
+    
+    if (isAdminRequest) {
+      // Verify admin authentication
+      const cookies = req.cookies || {};
+      const authToken = cookies.adminToken;
+      
+      if (!authToken) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      const tokenSiteId = await redis.get(`auth:${authToken}`);
+      if (!tokenSiteId || tokenSiteId !== siteId) {
+        return res.status(403).json({ error: 'Not authorized for this site' });
+      }
+    }
+    
+    // Get bookings
+    const bookings = await redis.get(`site:${siteId}:appointments:bookings`) || [];
+    
+    // Filter by date range if provided
+    const { start, end } = req.query;
+    let filteredBookings = bookings;
+    
+    if (start) {
+      filteredBookings = filteredBookings.filter(booking => 
+        booking.date >= start
+      );
+    }
+    
+    if (end) {
+      filteredBookings = filteredBookings.filter(booking => 
+        booking.date <= end
+      );
+    }
+    
+    return res.status(200).json({ appointments: filteredBookings });
+  } catch (error) {
+    console.error(`[Appointments API] Error listing appointments:`, error);
+    return res.status(500).json({ error: 'Failed to retrieve appointments' });
+  }
+}
+
+async function updateAppointment(req, res, siteId) {
+  // Implement logic for updating an appointment (admin only)
+  const { appointmentId, updates } = req.body;
+  
+  if (!appointmentId || !updates) {
+    return res.status(400).json({ error: 'Appointment ID and updates are required' });
+  }
+  
+  // Verify admin authentication
+  const cookies = req.cookies || {};
+  const authToken = cookies.adminToken;
+  
+  if (!authToken) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const tokenSiteId = await redis.get(`auth:${authToken}`);
+  if (!tokenSiteId || tokenSiteId !== siteId) {
+    return res.status(403).json({ error: 'Not authorized for this site' });
+  }
+  
+  try {
+    // Get bookings
+    const bookings = await redis.get(`site:${siteId}:appointments:bookings`) || [];
+    
+    // Find and update the appointment
+    const appointmentIndex = bookings.findIndex(appt => appt.id === appointmentId);
+    
+    if (appointmentIndex === -1) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    
+    // Update the appointment
+    bookings[appointmentIndex] = {
+      ...bookings[appointmentIndex],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Save updated bookings
+    await redis.set(`site:${siteId}:appointments:bookings`, bookings);
+    
+    return res.status(200).json({
+      success: true,
+      appointment: bookings[appointmentIndex]
+    });
+  } catch (error) {
+    console.error(`[Appointments API] Error updating appointment:`, error);
+    return res.status(500).json({ error: 'Failed to update appointment' });
+  }
+}
+
+async function cancelAppointment(req, res, siteId) {
+  const { appointmentId } = req.query;
+  
+  if (!appointmentId) {
+    return res.status(400).json({ error: 'Appointment ID is required' });
+  }
+  
+  try {
+    // Get bookings
+    const bookings = await redis.get(`site:${siteId}:appointments:bookings`) || [];
+    
+    // Find the appointment
+    const appointmentIndex = bookings.findIndex(appt => appt.id === appointmentId);
+    
+    if (appointmentIndex === -1) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    
+    // Check if this is an admin request or customer
+    const isAdminRequest = req.headers.referer?.includes('/admin/dashboard');
+    
+    if (isAdminRequest) {
+      // Verify admin authentication
+      const cookies = req.cookies || {};
+      const authToken = cookies.adminToken;
+      
+      if (!authToken) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      const tokenSiteId = await redis.get(`auth:${authToken}`);
+      if (!tokenSiteId || tokenSiteId !== siteId) {
+        return res.status(403).json({ error: 'Not authorized for this site' });
+      }
+    } else {
+      // For customer cancellations, they need to provide email that matches
+      const { email } = req.body;
+      if (!email || email !== bookings[appointmentIndex].customer.email) {
+        return res.status(403).json({ error: 'Not authorized to cancel this appointment' });
+      }
+    }
+    
+    // Either remove the appointment or mark as cancelled
+    if (isAdminRequest) {
+      // Admins can mark as cancelled but keep record
+      bookings[appointmentIndex] = {
+        ...bookings[appointmentIndex],
+        status: 'cancelled',
+        cancelledAt: new Date().toISOString()
+      };
+    } else {
+      // For customer cancellations, remove from list
+      bookings.splice(appointmentIndex, 1);
+    }
+    
+    // Save updated bookings
+    await redis.set(`site:${siteId}:appointments:bookings`, bookings);
+    
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error(`[Appointments API] Error cancelling appointment:`, error);
+    return res.status(500).json({ error: 'Failed to cancel appointment' });
+  }
+}
+
+// Helper function to generate available time slots
+function generateTimeSlots(startTime, endTime, duration, bufferTime, bookedAppointments) {
+  const slots = [];
+  const now = new Date();
+  const today = format(now, 'yyyy-MM-dd');
+  
+  // Parse start and end times
+  const start = parse(startTime, 'HH:mm', new Date());
+  const end = parse(endTime, 'HH:mm', new Date());
+  
+  // Generate slots
+  let currentSlot = start;
+  while (currentSlot < end) {
+    const slotEnd = addMinutes(currentSlot, parseInt(duration));
+    
+    if (slotEnd <= end) {
+      // Check if slot is available
+      const timeString = format(currentSlot, 'h:mm a');
+      const isBooked = bookedAppointments.some(appt => {
+        return appt.time === timeString;
+      });
+      
+      // Skip slots in the past for today
+      const isInPast = format(currentSlot, 'yyyy-MM-dd') === today && 
+                       currentSlot < now;
+      
+      if (!isBooked && !isInPast) {
+        slots.push({
+          time: timeString,
+          available: true
+        });
+      }
+    }
+    
+    // Move to next slot (duration + buffer)
+    currentSlot = addMinutes(currentSlot, parseInt(duration) + parseInt(bufferTime));
+  }
+  
+  return slots;
+}

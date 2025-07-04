@@ -8,6 +8,7 @@ import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
 import { extractSiteId } from './utils/siteId';
 import { initializePreviewDebugging, updatePreviewTitle } from './utils/previewHelpers';
+import AppointmentsSection from './components/AppointmentsSection';
 
 
 function App() {
@@ -194,6 +195,7 @@ function App() {
               {config.showTestimonials && <ThemedTestimonialsSection key='testimonials' {...content.testimonials} primaryColor={config.primaryColor} />}
               {config.showFAQ && <ThemedFAQSection key='faq' {...content.faq} primaryColor={config.primaryColor} />}
               {config.showContact && <ThemedContactSection key='contact' {...content.contact} primaryColor={config.primaryColor} />}
+              {config.showAppointments && <AppointmentsSection key="appointments" />}
             </AnimatePresence>
           </div>
         } />

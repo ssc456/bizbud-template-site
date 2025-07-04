@@ -125,6 +125,14 @@ function ConfigEditor({ clientData, setClientData }) {
               value={clientData.config?.showContact || false}
               onChange={(e) => handleChange('showContact', e.target.checked)}
             />
+
+            <FormField
+              label="Show Appointments Booking"
+              id="config-showAppointments"
+              type="checkbox"
+              value={clientData.config?.showAppointments || false}
+              onChange={(e) => handleChange('showAppointments', e.target.checked)}
+            />
           </div>
         </div>
       </div>

@@ -18,6 +18,7 @@ import ContactEditor from './editors/ContactEditor';
 import SocialEditor from './editors/SocialEditor';
 import ConfigEditor from './editors/ConfigEditor';
 import MediaLibrary from './editors/MediaLibrary';
+import AppointmentsManager from './editors/AppointmentsManager';
 
 import PreviewFrame from './PreviewFrame';
 import DebugConsole from './DebugConsole';
@@ -150,7 +151,8 @@ export default function AdminDashboard() {
     { id: 'contact', label: 'Contact', path: '/admin/dashboard/contact' },
     { id: 'social', label: 'Social Media', path: '/admin/dashboard/social' },
     { id: 'config', label: 'Display Settings', path: '/admin/dashboard/config' },
-    // { id: 'media', label: 'Media Library', path: '/admin/dashboard/media' },
+    { id: 'media', label: 'Media Library', path: '/admin/dashboard/media' },
+    { id: 'appointments', label: 'Appointments', path: '/admin/dashboard/appointments' },
   ];
 
   const handleLogout = async () => {
@@ -292,6 +294,7 @@ export default function AdminDashboard() {
                 <Route path="social" element={<SocialEditor clientData={clientData} setClientData={setClientData} />} />
                 <Route path="config" element={<ConfigEditor clientData={clientData} setClientData={setClientData} />} />
                 <Route path="media" element={<MediaLibrary />} />
+                <Route path="appointments" element={<AppointmentsManager />} />
               </Routes>
             )}
           </div>
