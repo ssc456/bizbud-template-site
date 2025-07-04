@@ -52,7 +52,7 @@ export default function AdminDashboard() {
         const csrfToken = sessionStorage.getItem('csrfToken');
         
         // Verify token is valid for this site
-        const validateResponse = await fetch(`/api/validate-token?siteId=${extractedSiteId}`, {
+        const validateResponse = await fetch(`/api/auth?action=validate&siteId=${extractedSiteId}`, {
           credentials: 'include', // Important for cookies
           headers: {
             'X-CSRF-Token': csrfToken || ''
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
         }
         
         // Continue with data fetching
-        const response = await fetch(`/api/get-client-data?siteId=${extractedSiteId}`, {
+        const response = await fetch(`/api/client-data?siteId=${extractedSiteId}`, {
           credentials: 'include', // Important for cookies
           headers: {
             'X-CSRF-Token': csrfToken || ''
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
       // Get CSRF token from sessionStorage
       const csrfToken = sessionStorage.getItem('csrfToken');
       
-      const response = await fetch('/api/save-client-data', {
+      const response = await fetch('/api/client-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -158,7 +158,7 @@ export default function AdminDashboard() {
       const csrfToken = sessionStorage.getItem('csrfToken');
       
       // Call logout API
-      await fetch('/api/logout', {
+      await fetch('/api/auth?action=logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

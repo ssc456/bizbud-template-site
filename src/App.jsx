@@ -109,7 +109,7 @@ function App() {
     console.log('App loading data for site ID:', extractedSiteId);
 
     // First try API endpoint with Redis data
-    fetch(`/api/get-client-data?siteId=${extractedSiteId}`)
+    fetch(`/api/client-data?siteId=${extractedSiteId}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Remote data not available');
