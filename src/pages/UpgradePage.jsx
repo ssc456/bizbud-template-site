@@ -2,8 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import Layout from '../components/Layout';
 
-// Initialize Stripe (replace with your publishable key)
-const stripePromise = loadStripe(import.meta.env.STRIPE_PUBLISHABLE_KEY || window.ENV?.STRIPE_PUBLISHABLE_KEY);
+// Fix the Stripe initialization
+let stripePromise;
+try {
+  // Try all possible ways to get the Stripe publishable key
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 
+                    window.STRIPE_PUBLISHABLE_KEY ||
+                    process.env.STRIPE_PUBLISHABLE_KEY;
+  
+  if (stripeKey) {
+    console.log("Using Stripe key:", stripeKey.substring(0, 8) + "...");
+    stripePromise = loadStripe(stripeKey);
+  } else {
+    console.error("No Stripe publishable key found!");
+  }
+} catch (error) {
+  console.error("Error initializing Stripe:", error);
+}
 
 export default function UpgradePage() {
   const [loading, setLoading] = useState(false);
@@ -34,6 +49,10 @@ export default function UpgradePage() {
   const handlePayment = async (paymentType) => {
     setLoading(true);
     try {
+      if (!stripePromise) {
+        throw new Error("Stripe has not been properly initialized");
+      }
+      
       const siteId = window.location.hostname.split('.')[0];
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',

@@ -33,11 +33,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'This site is already premium' });
     }
     
-    // Set product prices from your Stripe dashboard
+    // Both prices are subscription products in Stripe
     const priceId = paymentType === 'subscription' 
       ? process.env.STRIPE_MONTHLY_PRICE_ID 
       : process.env.STRIPE_ONE_TIME_PRICE_ID;
     
+    // Set mode based on payment type
+    const mode = paymentType === 'subscription' ? 'subscription' : 'payment';
+
     // Create a checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -47,7 +50,7 @@ export default async function handler(req, res) {
           quantity: 1,
         },
       ],
-      mode: paymentType === 'subscription' ? 'subscription' : 'payment',
+      mode: mode,  // Use the appropriate mode
       success_url: `https://${siteId}.vercel.app/upgrade-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://${siteId}.vercel.app/upgrade-cancel`,
       metadata: {
