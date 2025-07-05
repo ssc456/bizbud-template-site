@@ -11,6 +11,8 @@ import { initializePreviewDebugging, updatePreviewTitle } from './utils/previewH
 import AppointmentsSection from './components/AppointmentsSection';
 import BookAppointment from './pages/BookAppointment'; // Import the new component
 import AppointmentsAdmin from './admin/AppointmentsAdmin'; // Import the admin appointments component
+import PremiumOverlay from './components/PremiumOverlay';
+import UpgradePage from './pages/UpgradePage'; // Import the upgrade page
 
 
 function App() {
@@ -30,10 +32,32 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [siteId, setSiteId] = useState('');
   const [isPreview, setIsPreview] = useState(false);
+  const [paymentTier, setPaymentTier] = useState('PREMIUM');
+
 
   useEffect(() => {
     initializePreviewDebugging();
   }, []);
+
+  useEffect(() => {
+  // Check payment tier from client data
+  const fetchPaymentTier = async () => {
+    try {
+      const siteId = extractSiteId();
+      const response = await fetch(`/api/client-data?siteId=${siteId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.paymentTier) {
+          setPaymentTier(data.paymentTier);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch payment tier:', error);
+    }
+  };
+  
+  fetchPaymentTier();
+}, []);
 
   useEffect(() => {
     // Check if we're in preview mode
@@ -199,10 +223,13 @@ function App() {
               {config.showFAQ && <ThemedFAQSection key='faq' {...content.faq} primaryColor={config.primaryColor} />}
               {config.showContact && <ThemedContactSection key='contact' {...content.contact} primaryColor={config.primaryColor} />}
               {config.showAppointments && <AppointmentsSection key="appointments" />}
+              {paymentTier === 'FREE' && <PremiumOverlay />}
+
             </AnimatePresence>
           </div>
         } />
         <Route path="/book-appointment" element={<BookAppointment />} /> {/* Add the new route here */}
+        <Route path="/upgrade" element={<UpgradePage />} /> {/* Add the upgrade route here */}
       </Routes>
     </BrowserRouter>
   )

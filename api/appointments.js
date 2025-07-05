@@ -91,6 +91,9 @@ export default async function handler(req, res) {
         }
         return await confirmAppointment(req, res, siteId);
         
+      case 'pendingCount':
+        return await getPendingCount(req, res, siteId);
+        
       default:
         return res.status(400).json({ error: 'Invalid action' });
     }
@@ -124,6 +127,11 @@ async function getSettings(req, res, siteId) {
         { value: 15, enabled: true, label: '15 minutes' },
         { value: 30, enabled: true, label: '30 minutes' },
         { value: 60, enabled: true, label: '1 hour' }
+      ],
+      serviceTypes: [
+        { id: 'general', name: 'General Appointment', enabled: true },
+        { id: 'consultation', name: 'Consultation', enabled: true },
+        { id: 'followup', name: 'Follow-up', enabled: true }
       ]
     };
     return res.status(200).json(defaultSettings);
@@ -139,10 +147,9 @@ async function saveSettings(req, res, siteId) {
     return res.status(400).json({ error: 'Settings object is required' });
   }
   
-  // Validate the settings object
   try {
     // Basic validation
-    if (!settings.workingHours || !settings.durations) {
+    if (!settings.workingHours || !settings.durations || !settings.serviceTypes) {
       return res.status(400).json({ error: 'Invalid settings format' });
     }
     
@@ -227,9 +234,13 @@ async function getAvailability(req, res, siteId) {
       bookingsWithDate
     );
     
+    // Return available slots, durations, and service types
     return res.status(200).json({ 
       availableSlots: slots,
-      durations: settings.durations.filter(d => d.enabled) 
+      durations: settings.durations?.filter(d => d.enabled) || [],
+      serviceTypes: settings.serviceTypes?.filter(s => s.enabled) || [
+        { id: 'general', name: 'General Appointment', enabled: true }
+      ]
     });
   }
   
@@ -260,7 +271,8 @@ async function getAvailability(req, res, siteId) {
 }
 
 async function bookAppointment(req, res, siteId) {
-  const { date, time, duration, customer } = req.body;
+  // Extract service from request body
+  const { date, time, duration, service, serviceId, customer } = req.body;
   
   if (!date || !time || !customer) {
     return res.status(400).json({ error: 'Missing required booking information' });
@@ -300,12 +312,14 @@ async function bookAppointment(req, res, siteId) {
       });
     }
     
-    // Create appointment with status "pending" instead of "confirmed"
+    // Create appointment with service info
     const appointment = {
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
       date,
       time,
       duration: duration || 30,
+      service,
+      serviceId,
       customer,
       status: 'pending', // Change from 'confirmed' to 'pending'
       createdAt: new Date().toISOString()
@@ -316,6 +330,54 @@ async function bookAppointment(req, res, siteId) {
     
     // Save updated bookings
     await redis.set(`site:${siteId}:appointments:bookings`, bookings);
+    
+    // 1. Send email to customer
+    try {
+      await sendEmail({
+        to: customer.email,
+        subject: `Appointment Request Received - ${businessName || siteId}`,
+        text: `Thank you for your appointment request on ${date} at ${time}. We will confirm your request shortly.`,
+        html: `
+          <h2>Appointment Request Received</h2>
+          <p>Thank you for requesting an appointment with ${businessName || siteId}.</p>
+          <p><strong>Date:</strong> ${date}</p>
+          <p><strong>Time:</strong> ${time}</p>
+          <p><strong>Service:</strong> ${appointment.service || 'General Appointment'}</p>
+          <p>We will review your request and send you a confirmation email shortly.</p>
+        `
+      });
+    } catch (emailError) {
+      console.error('Failed to send customer confirmation email:', emailError);
+    }
+    
+    // 2. Send notification to site owner
+    try {
+      // Get site owner email from client data
+      const clientData = await redis.get(`site:${siteId}:client`);
+      const ownerEmail = clientData?.adminEmail || clientData?.email;
+      
+      if (ownerEmail) {
+        await sendEmail({
+          to: ownerEmail,
+          subject: `New Appointment Request - ${businessName || siteId}`,
+          text: `A new appointment has been requested for ${date} at ${time}.`,
+          html: `
+            <h2>New Appointment Request</h2>
+            <p>A new appointment has been requested.</p>
+            <p><strong>Customer:</strong> ${customer.name}</p>
+            <p><strong>Email:</strong> ${customer.email}</p>
+            <p><strong>Phone:</strong> ${customer.phone}</p>
+            <p><strong>Date:</strong> ${date}</p>
+            <p><strong>Time:</strong> ${time}</p>
+            <p><strong>Service:</strong> ${appointment.service || 'General Appointment'}</p>
+            <p><strong>Notes:</strong> ${customer.notes || 'No notes provided'}</p>
+            <p>To confirm or cancel this appointment, please log in to your <a href="https://${siteId}.vercel.app/admin/appointments">appointment dashboard</a>.</p>
+          `
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send owner notification email:', emailError);
+    }
     
     // Return success
     return res.status(200).json({ 
@@ -592,6 +654,35 @@ async function confirmAppointment(req, res, siteId) {
   } catch (error) {
     console.error(`[Appointments API] Error confirming appointment:`, error);
     return res.status(500).json({ error: 'Failed to confirm appointment' });
+  }
+}
+
+// New function to get count of pending appointments
+async function getPendingCount(req, res, siteId) {
+  try {
+    // Verify admin authentication
+    const cookies = req.cookies || {};
+    const authToken = cookies.adminToken;
+    
+    if (!authToken) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const tokenSiteId = await redis.get(`auth:${authToken}`);
+    if (!tokenSiteId || tokenSiteId !== siteId) {
+      return res.status(403).json({ error: 'Not authorized for this site' });
+    }
+    
+    // Get bookings
+    const bookings = await redis.get(`site:${siteId}:appointments:bookings`) || [];
+    
+    // Count pending appointments
+    const pendingCount = bookings.filter(appt => appt.status === 'pending').length;
+    
+    return res.status(200).json({ count: pendingCount });
+  } catch (error) {
+    console.error(`[Appointments API] Error getting pending count:`, error);
+    return res.status(500).json({ error: 'Failed to get pending count' });
   }
 }
 

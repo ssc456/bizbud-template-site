@@ -24,9 +24,15 @@ export default function AppointmentsManager() {
       { value: 15, enabled: true, label: '15 minutes' },
       { value: 30, enabled: true, label: '30 minutes' },
       { value: 60, enabled: true, label: '1 hour' }
+    ],
+    serviceTypes: [
+      { id: 'general', name: 'General Appointment', enabled: true },
+      { id: 'consultation', name: 'Consultation', enabled: true },
+      { id: 'followup', name: 'Follow-up', enabled: true }
     ]
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [listTab, setListTab] = useState('pending'); // pending, confirmed, cancelled
   
   useEffect(() => {
     fetchSettings();
@@ -394,6 +400,67 @@ export default function AppointmentsManager() {
             </select>
           </div>
           
+          {/* Service Types */}
+          <div className="mb-6">
+            <h4 className="font-medium mb-2">Service Types</h4>
+            <div className="space-y-2">
+              {settings.serviceTypes?.map((service, index) => (
+                <div key={service.id || index} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`service-${service.id}`}
+                    checked={service.enabled}
+                    onChange={() => {
+                      const newServiceTypes = [...settings.serviceTypes];
+                      newServiceTypes[index].enabled = !newServiceTypes[index].enabled;
+                      setSettings({...settings, serviceTypes: newServiceTypes});
+                    }}
+                    className="mr-2"
+                  />
+                  <input
+                    type="text"
+                    value={service.name}
+                    onChange={(e) => {
+                      const newServiceTypes = [...settings.serviceTypes];
+                      newServiceTypes[index].name = e.target.value;
+                      setSettings({...settings, serviceTypes: newServiceTypes});
+                    }}
+                    className="border rounded p-1 flex-grow"
+                  />
+                  {settings.serviceTypes.length > 1 && (
+                    <button
+                      onClick={() => {
+                        const newServiceTypes = settings.serviceTypes.filter((_, i) => i !== index);
+                        setSettings({...settings, serviceTypes: newServiceTypes});
+                      }}
+                      className="ml-2 text-red-600 hover:text-red-800"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  const newServiceTypes = [...(settings.serviceTypes || []), { 
+                    id: `service-${Date.now()}`, 
+                    name: 'New Service', 
+                    enabled: true 
+                  }];
+                  setSettings({...settings, serviceTypes: newServiceTypes});
+                }}
+                className="flex items-center text-blue-600 hover:text-blue-800"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Add Service Type
+              </button>
+            </div>
+          </div>
+          
           <button 
             onClick={saveSettings}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -432,89 +499,91 @@ export default function AppointmentsManager() {
       
       {view === 'list' && (
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="font-medium text-lg mb-4">All Appointments</h3>
+          <h3 className="font-medium text-lg mb-4">Appointment Requests</h3>
           
-          <div className="mb-4 flex items-center space-x-2">
-            <select 
-              className="border rounded p-2"
-              onChange={(e) => {
-                const value = e.target.value;
-                let startDate, endDate;
-                
-                if (value === 'upcoming') {
-                  startDate = format(new Date(), 'yyyy-MM-dd');
-                  // No end date for upcoming
-                } else if (value === 'past') {
-                  endDate = format(new Date(), 'yyyy-MM-dd');
-                  // No start date for past
-                } else if (value === 'month') {
-                  const now = new Date();
-                  startDate = format(new Date(now.getFullYear(), now.getMonth(), 1), 'yyyy-MM-dd');
-                  endDate = format(new Date(now.getFullYear(), now.getMonth() + 1, 0), 'yyyy-MM-dd');
-                }
-                
-                fetchAppointmentsList(startDate, endDate);
-              }}
-            >
-              <option value="upcoming">Upcoming</option>
-              <option value="past">Past</option>
-              <option value="month">This Month</option>
-              <option value="all">All Time</option>
-            </select>
-            
-            <button 
-              className="px-3 py-1 bg-blue-600 text-white rounded"
-              onClick={() => fetchAppointmentsList()}
-            >
-              Refresh
-            </button>
+          <div className="mb-4">
+            <div className="flex border-b border-gray-200">
+              <button
+                className={`py-2 px-4 ${listTab === 'pending' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setListTab('pending')}
+              >
+                Pending
+                {appointments.filter(a => a.status === 'pending').length > 0 && (
+                  <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {appointments.filter(a => a.status === 'pending').length}
+                  </span>
+                )}
+              </button>
+              <button
+                className={`py-2 px-4 ${listTab === 'confirmed' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setListTab('confirmed')}
+              >
+                Confirmed
+              </button>
+              <button
+                className={`py-2 px-4 ${listTab === 'cancelled' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setListTab('cancelled')}
+              >
+                Cancelled
+              </button>
+            </div>
           </div>
           
+          {/* Filter appointments based on selected tab */}
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {appointments.length === 0 ? (
-              <p className="text-gray-500">No appointments found.</p>
+            {appointments.filter(a => a.status === listTab).length === 0 ? (
+              <p className="text-gray-500">No {listTab} appointments found.</p>
             ) : 
-              appointments.map(appointment => (
-                <div key={appointment.id} className="p-3 border rounded-lg">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="font-medium">{appointment.customer?.name || 'No name'}</p>
-                      <p className="text-sm text-gray-500">
-                        {appointment.date} at {appointment.time}
-                      </p>
-                    </div>
-                    <div className="flex items-center">
-                      {appointment.status === 'pending' && (
+              appointments
+                .filter(a => a.status === listTab)
+                .map(appointment => (
+                  <div 
+                    key={appointment.id} 
+                    className={`p-3 border rounded-lg ${
+                      appointment.status === 'pending' ? 'border-yellow-300 bg-yellow-50' : 
+                      appointment.status === 'confirmed' ? 'border-green-300 bg-green-50' :
+                      'border-red-300 bg-red-50'
+                    }`}
+                  >
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="font-medium">{appointment.customer?.name || 'No name'}</p>
+                        <p className="text-sm text-gray-500">
+                          {appointment.date} at {appointment.time}
+                        </p>
+                      </div>
+                      <div className="flex items-center">
+                        {appointment.status === 'pending' && (
+                          <button 
+                            onClick={() => handleConfirmAppointment(appointment.id)}
+                            className="text-green-600 mr-2"
+                          >
+                            Confirm
+                          </button>
+                        )}
                         <button 
-                          onClick={() => handleConfirmAppointment(appointment.id)}
-                          className="text-green-600 mr-2"
+                          onClick={() => handleEditAppointment(appointment)}
+                          className="text-blue-600 mr-2"
                         >
-                          Confirm
+                          Edit
                         </button>
+                        <button 
+                          onClick={() => handleCancelAppointment(appointment.id)}
+                          className="text-red-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-1 text-sm">
+                      <p><span className="font-medium">Email:</span> {appointment.customer?.email}</p>
+                      <p><span className="font-medium">Phone:</span> {appointment.customer?.phone}</p>
+                      {appointment.customer?.notes && (
+                        <p><span className="font-medium">Notes:</span> {appointment.customer.notes}</p>
                       )}
-                      <button 
-                        onClick={() => handleEditAppointment(appointment)}
-                        className="text-blue-600 mr-2"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleCancelAppointment(appointment.id)}
-                        className="text-red-600"
-                      >
-                        Cancel
-                      </button>
                     </div>
                   </div>
-                  <div className="mt-1 text-sm">
-                    <p><span className="font-medium">Email:</span> {appointment.customer?.email}</p>
-                    <p><span className="font-medium">Phone:</span> {appointment.customer?.phone}</p>
-                    {appointment.customer?.notes && (
-                      <p><span className="font-medium">Notes:</span> {appointment.customer.notes}</p>
-                    )}
-                  </div>
-                </div>
-              ))
+                ))
             }
           </div>
         </div>

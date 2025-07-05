@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function AppointmentsAdmin() {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
   
   useEffect(() => {
     // Check authentication
@@ -28,6 +29,39 @@ export default function AppointmentsAdmin() {
     
     checkAuth();
   }, []);
+  
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      if (authorized) {
+        try {
+          const csrfToken = sessionStorage.getItem('csrfToken');
+          const extractedSiteId = window.location.hostname.split('.')[0];
+          
+          const response = await fetch(
+            `/api/appointments?action=pendingCount&siteId=${extractedSiteId}`,
+            {
+              credentials: 'include',
+              headers: { 'X-CSRF-Token': csrfToken || '' }
+            }
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            setPendingCount(data.count);
+          }
+        } catch (error) {
+          console.error('Error fetching pending count:', error);
+        }
+      }
+    };
+    
+    if (authorized) {
+      fetchPendingCount();
+      // Set up interval to check for new appointments every minute
+      const intervalId = setInterval(fetchPendingCount, 60000);
+      return () => clearInterval(intervalId);
+    }
+  }, [authorized]);
   
   const handleLogout = async () => {
     try {
@@ -82,9 +116,17 @@ export default function AppointmentsAdmin() {
           <nav className="space-y-1 px-2">
             <Link
               to="/admin/dashboard"
-              className="flex items-center px-4 py-2 text-sm rounded-md text-gray-300 hover:bg-gray-700"
+              className="flex items-center justify-between px-4 py-2 text-sm rounded-md text-gray-300 hover:bg-gray-700"
             >
-              Back to Site Admin
+              <div className="flex items-center">
+                <svg className="h-5 w-5 mr-2" /* SVG path */></svg>
+                Appointment Requests
+              </div>
+              {pendingCount > 0 && (
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  {pendingCount}
+                </span>
+              )}
             </Link>
           </nav>
         </div>

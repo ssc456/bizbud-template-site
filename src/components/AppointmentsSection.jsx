@@ -27,6 +27,10 @@ export default function AppointmentsSection() {
     return { year: current.getFullYear(), month: current.getMonth() + 1 };
   });
   
+  // Service types state
+  const [serviceTypes, setServiceTypes] = useState([]);
+  const [selectedService, setSelectedService] = useState(null);
+  
   // Fetch available dates for the current month
   useEffect(() => {
     const fetchAvailableDates = async (year, month) => {
@@ -46,29 +50,41 @@ export default function AppointmentsSection() {
   }, [viewMonth]);
   
   // Fetch available times when a date is selected
-  useEffect(() => {
-    if (!selectedDate) return;
+useEffect(() => {
+  if (!selectedDate) return;
+  
+  const fetchAvailableTimes = async () => {
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
     
-    const fetchAvailableTimes = async () => {
-      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-      
-      try {
-        const response = await fetch(`/api/appointments?action=availability&siteId=${siteId}&date=${formattedDate}`);
-        if (response.ok) {
-          const data = await response.json();
-          setAvailableTimes(data.availableSlots);
-          if (data.durations) {
-            setSelectedDuration(data.durations[0].value);
-          }
+    try {
+      const response = await fetch(`/api/appointments?action=availability&siteId=${siteId}&date=${formattedDate}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableTimes(data.availableSlots);
+        
+        // Handle durations from API
+        if (data.durations && data.durations.length > 0) {
+          setSelectedDuration(data.durations[0].value);
         }
-      } catch (error) {
-        console.error('Error fetching available times:', error);
-        setError('Failed to load available times');
+        
+        // Handle service types from API
+        if (data.serviceTypes && data.serviceTypes.length > 0) {
+          setServiceTypes(data.serviceTypes);
+          setSelectedService(data.serviceTypes[0].id);
+        } else {
+          // Default if none are returned
+          setServiceTypes([{ id: 'general', name: 'General Appointment', enabled: true }]);
+          setSelectedService('general');
+        }
       }
-    };
-    
-    fetchAvailableTimes();
-  }, [selectedDate]);
+    } catch (error) {
+      console.error('Error fetching available times:', error);
+      setError('Failed to load available times');
+    }
+  };
+  
+  fetchAvailableTimes();
+}, [selectedDate]);
   
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -100,6 +116,8 @@ export default function AppointmentsSection() {
           date: format(selectedDate, 'yyyy-MM-dd'),
           time: selectedTime,
           duration: selectedDuration,
+          service: serviceTypes.find(s => s.id === selectedService)?.name || 'General Appointment',
+          serviceId: selectedService,
           customer: formData
         })
       });
@@ -306,6 +324,21 @@ export default function AppointmentsSection() {
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                       rows="3"
                     ></textarea>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Service Type
+                    </label>
+                    <select
+                      value={selectedService}
+                      onChange={(e) => setSelectedService(e.target.value)}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {serviceTypes.map(service => (
+                        <option key={service.id} value={service.id}>{service.name}</option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div className="pt-4">
