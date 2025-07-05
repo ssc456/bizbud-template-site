@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { Phone, Mail, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-function ContactSection({ title, description, email, phone, address, primaryColor }) {
+function ContactSection({ title, description, email, phone, address, primaryColor, clientData }) {
   const colorClasses = {
     pink: {
       accent: 'text-pink-500',
@@ -158,6 +159,18 @@ function ContactSection({ title, description, email, phone, address, primaryColo
               </div>
             </motion.div>
           </div>
+
+          {/* Book Appointment Button - Only show if appointments are enabled */}
+          {clientData?.config?.showAppointments && (
+            <div className="mt-8">
+              <Link 
+                to="/book-appointment" 
+                className={`inline-block py-3 px-6 bg-gradient-to-r ${colorClasses.gradient} text-white font-medium rounded-lg hover:opacity-90 transition-opacity`}
+              >
+                Book an Appointment
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </section>

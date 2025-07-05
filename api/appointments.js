@@ -29,6 +29,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Site ID is required' });
   }
   
+  // Check if appointments feature is enabled for this site
+  try {
+    const clientData = await redis.get(`site:${siteId}:client`);
+    if (!clientData?.config?.showAppointments) {
+      return res.status(404).json({ error: 'Appointment feature not enabled for this site' });
+    }
+  } catch (error) {
+    console.error('Error checking appointment config:', error);
+    // Continue anyway since this is just a secondary check
+  }
+  
   if (!redis) {
     return res.status(500).json({ error: 'Database connection unavailable' });
   }

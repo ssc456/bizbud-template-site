@@ -9,6 +9,8 @@ import AdminDashboard from './admin/AdminDashboard';
 import { extractSiteId } from './utils/siteId';
 import { initializePreviewDebugging, updatePreviewTitle } from './utils/previewHelpers';
 import AppointmentsSection from './components/AppointmentsSection';
+import BookAppointment from './components/BookAppointment'; // Import the new component
+import AppointmentsAdmin from './admin/AppointmentsAdmin'; // Import the admin appointments component
 
 
 function App() {
@@ -181,6 +183,7 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
+        <Route path="/admin/appointments" element={<AppointmentsAdmin />} /> {/* Add this route */}
         <Route path="/" element={
           <div className='min-h-screen bg-white scroll-smooth'>
             <Header siteTitle={content.siteTitle} logoUrl={content.logoUrl} config={config} primaryColor={config.primaryColor} />
@@ -199,9 +202,60 @@ function App() {
             </AnimatePresence>
           </div>
         } />
+        <Route path="/book-appointment" element={<BookAppointment />} /> {/* Add the new route here */}
       </Routes>
     </BrowserRouter>
   )
 }
 
 export default App
+
+// Add this code to conditionally render the appointment route
+
+function AppRoutes() {
+  const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const siteId = window.location.hostname.split('.')[0];
+        const response = await fetch(`/api/client-data?siteId=${siteId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setConfig(data.config || {});
+        }
+      } catch (error) {
+        console.error('Error fetching config:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchConfig();
+  }, []);
+  
+  if (loading) {
+    return <Routes>
+      <Route path="/*" element={<Home />} />
+    </Routes>;
+  }
+  
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      {/* Other routes */}
+      
+      {/* Conditional appointment routes */}
+      {config.showAppointments && (
+        <>
+          <Route path="/book-appointment" element={<BookAppointment />} />
+          <Route path="/admin/appointments" element={<AppointmentsAdmin />} />
+        </>
+      )}
+      
+      {/* Admin routes */}
+      <Route path="/admin/*" element={<Admin />} />
+    </Routes>
+  );
+}

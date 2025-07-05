@@ -31,7 +31,8 @@ export default function AppointmentsManager() {
   useEffect(() => {
     fetchSettings();
     fetchAppointments(selectedDate);
-  }, [selectedDate]);
+    // Remove selectedDate from the dependencies
+  }, []);
   
   // Add this effect
   useEffect(() => {
@@ -215,7 +216,10 @@ export default function AppointmentsManager() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <Calendar 
-              onChange={setSelectedDate}
+              onChange={(date) => {
+                setSelectedDate(date);
+                fetchAppointments(date);
+              }}
               value={selectedDate}
               className="w-full"
             />
