@@ -114,7 +114,7 @@ export default function UpgradePage() {
                 disabled={loading}
                 className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50"
               >
-                {loading ? 'Processing...' : 'Subscribe Now'}
+                {loading ? 'Processing...' : 'Pay Monthly'}
               </button>
             </div>
             
@@ -141,7 +141,7 @@ export default function UpgradePage() {
                   <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <strong>Save £50</strong> compared to monthly
+                  <strong>Save £50 </strong> compared to monthly
                 </li>
               </ul>
               <button
