@@ -9,7 +9,7 @@ import AdminDashboard from './admin/AdminDashboard';
 import { extractSiteId } from './utils/siteId';
 import { initializePreviewDebugging, updatePreviewTitle } from './utils/previewHelpers';
 import AppointmentsSection from './components/AppointmentsSection';
-import BookAppointment from './components/BookAppointment'; // Import the new component
+import BookAppointment from './pages/BookAppointment'; // Import the new component
 import AppointmentsAdmin from './admin/AppointmentsAdmin'; // Import the admin appointments component
 
 
