@@ -3,7 +3,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import Layout from '../components/Layout';
 
 // Initialize Stripe (replace with your publishable key)
-const stripePromise = loadStripe('pk_test_your_stripe_publishable_key');
+const stripePromise = loadStripe(import.meta.env.STRIPE_PUBLISHABLE_KEY || window.ENV?.STRIPE_PUBLISHABLE_KEY);
 
 export default function UpgradePage() {
   const [loading, setLoading] = useState(false);
@@ -119,7 +119,7 @@ export default function UpgradePage() {
             </div>
             
             <div className="border rounded-xl p-6 hover:shadow-lg transition-shadow">
-              <h2 className="text-xl font-semibold text-gray-800">Yearly Plan</h2>
+              <h2 className="text-xl font-semibold text-gray-800">Annual Plan</h2>
               <div className="my-4">
                 <span className="text-4xl font-bold">£250</span>
                 <span className="text-gray-600">/year</span>
@@ -149,7 +149,7 @@ export default function UpgradePage() {
                 disabled={loading}
                 className="w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 disabled:opacity-50"
               >
-                {loading ? 'Processing...' : 'Pay Once'}
+                {loading ? 'Processing...' : 'Pay Annually'}
               </button>
             </div>
           </div>
