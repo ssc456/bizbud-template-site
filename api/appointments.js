@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 import { addMinutes, parse, format, parseISO, isAfter } from 'date-fns';
+import { sendEmail } from './utils/email';
 
 // Initialize Redis client
 const redis = (() => {
@@ -83,6 +84,12 @@ export default async function handler(req, res) {
           return res.status(405).json({ error: 'Method not allowed' });
         }
         return await cleanupAppointments(req, res, siteId);
+        
+      case 'confirm':
+        if (req.method !== 'POST') {
+          return res.status(405).json({ error: 'Method not allowed' });
+        }
+        return await confirmAppointment(req, res, siteId);
         
       default:
         return res.status(400).json({ error: 'Invalid action' });
@@ -293,14 +300,14 @@ async function bookAppointment(req, res, siteId) {
       });
     }
     
-    // Create appointment
+    // Create appointment with status "pending" instead of "confirmed"
     const appointment = {
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
       date,
       time,
       duration: duration || 30,
       customer,
-      status: 'confirmed',
+      status: 'pending', // Change from 'confirmed' to 'pending'
       createdAt: new Date().toISOString()
     };
     
@@ -437,45 +444,37 @@ async function cancelAppointment(req, res, siteId) {
       return res.status(404).json({ error: 'Appointment not found' });
     }
     
-    // Check if this is an admin request or customer
-    const isAdminRequest = req.headers.referer?.includes('/admin/dashboard');
+    // Store the appointment for email notification
+    const cancelledAppointment = bookings[appointmentIndex];
     
-    if (isAdminRequest) {
-      // Verify admin authentication
-      const cookies = req.cookies || {};
-      const authToken = cookies.adminToken;
-      
-      if (!authToken) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-      
-      const tokenSiteId = await redis.get(`auth:${authToken}`);
-      if (!tokenSiteId || tokenSiteId !== siteId) {
-        return res.status(403).json({ error: 'Not authorized for this site' });
-      }
-    } else {
-      // For customer cancellations, they need to provide email that matches
-      const { email } = req.body;
-      if (!email || email !== bookings[appointmentIndex].customer.email) {
-        return res.status(403).json({ error: 'Not authorized to cancel this appointment' });
-      }
-    }
-    
-    // Either remove the appointment or mark as cancelled
-    if (isAdminRequest) {
-      // Admins can mark as cancelled but keep record
-      bookings[appointmentIndex] = {
-        ...bookings[appointmentIndex],
-        status: 'cancelled',
-        cancelledAt: new Date().toISOString()
-      };
-    } else {
-      // For customer cancellations, remove from list
-      bookings.splice(appointmentIndex, 1);
-    }
+    // Mark as cancelled instead of removing
+    bookings[appointmentIndex] = {
+      ...bookings[appointmentIndex],
+      status: 'cancelled',
+      cancelledAt: new Date().toISOString()
+    };
     
     // Save updated bookings
     await redis.set(`site:${siteId}:appointments:bookings`, bookings);
+    
+    // Send cancellation email
+    try {
+      await sendEmail({
+        to: cancelledAppointment.customer.email,
+        subject: `Appointment Cancelled - ${siteId}`,
+        text: `Your appointment on ${cancelledAppointment.date} at ${cancelledAppointment.time} has been cancelled.`,
+        html: `
+          <h2>Appointment Cancelled</h2>
+          <p>Your appointment has been cancelled.</p>
+          <p><strong>Date:</strong> ${cancelledAppointment.date}</p>
+          <p><strong>Time:</strong> ${cancelledAppointment.time}</p>
+          <p>If you did not request this cancellation, please contact us.</p>
+        `
+      });
+    } catch (emailError) {
+      console.error('Failed to send cancellation email:', emailError);
+      // Continue anyway
+    }
     
     return res.status(200).json({ success: true });
   } catch (error) {
@@ -521,6 +520,78 @@ async function cleanupAppointments(req, res, siteId) {
   } catch (error) {
     console.error(`[Appointments API] Error cleaning up appointments:`, error);
     return res.status(500).json({ error: 'Failed to clean up appointments' });
+  }
+}
+
+// New function to confirm an appointment
+async function confirmAppointment(req, res, siteId) {
+  const { appointmentId } = req.body;
+  
+  if (!appointmentId) {
+    return res.status(400).json({ error: 'Appointment ID is required' });
+  }
+  
+  // Verify admin authentication
+  const cookies = req.cookies || {};
+  const authToken = cookies.adminToken;
+  
+  if (!authToken) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const tokenSiteId = await redis.get(`auth:${authToken}`);
+  if (!tokenSiteId || tokenSiteId !== siteId) {
+    return res.status(403).json({ error: 'Not authorized for this site' });
+  }
+  
+  try {
+    // Get bookings
+    const bookings = await redis.get(`site:${siteId}:appointments:bookings`) || [];
+    
+    // Find the appointment
+    const appointmentIndex = bookings.findIndex(appt => appt.id === appointmentId);
+    
+    if (appointmentIndex === -1) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    
+    // Update status to confirmed
+    bookings[appointmentIndex] = {
+      ...bookings[appointmentIndex],
+      status: 'confirmed',
+      confirmedAt: new Date().toISOString()
+    };
+    
+    // Save updated bookings
+    await redis.set(`site:${siteId}:appointments:bookings`, bookings);
+    
+    // Send confirmation email
+    try {
+      const appointment = bookings[appointmentIndex];
+      await sendEmail({
+        to: appointment.customer.email,
+        subject: `Appointment Confirmed - ${siteId}`,
+        text: `Your appointment on ${appointment.date} at ${appointment.time} has been confirmed.`,
+        html: `
+          <h2>Appointment Confirmed</h2>
+          <p>Your appointment has been confirmed.</p>
+          <p><strong>Date:</strong> ${appointment.date}</p>
+          <p><strong>Time:</strong> ${appointment.time}</p>
+          <p>We look forward to seeing you!</p>
+        `
+      });
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+      // Continue anyway - don't fail the confirmation just because email failed
+    }
+    
+    return res.status(200).json({ 
+      success: true,
+      appointment: bookings[appointmentIndex]
+    });
+  } catch (error) {
+    console.error(`[Appointments API] Error confirming appointment:`, error);
+    return res.status(500).json({ error: 'Failed to confirm appointment' });
   }
 }
 

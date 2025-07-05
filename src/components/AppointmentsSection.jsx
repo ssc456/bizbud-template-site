@@ -333,28 +333,21 @@ export default function AppointmentsSection() {
             {step === 4 && success && (
               <div className="text-center py-6">
                 <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
-                  <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Appointment Confirmed!</h3>
-                
-                <div className="mb-6 text-gray-600">
-                  <p className="mb-1">We've booked your appointment for:</p>
-                  <p className="font-medium text-lg">
-                    {format(selectedDate, 'EEEE, MMMM d, yyyy')} at {selectedTime}
-                  </p>
-                  <p className="mt-3 text-sm">
-                    A confirmation has been sent to your email address.
-                  </p>
-                </div>
-                
+                <h3 className="text-xl font-medium text-gray-900 mb-2">Appointment Request Submitted</h3>
+                <p className="text-gray-600 mb-4">
+                  We've received your appointment request for {format(selectedDate, 'MMMM d, yyyy')} at {selectedTime}.
+                  We'll review your request and send you a confirmation email shortly.
+                </p>
                 <button
                   onClick={() => {
                     setStep(1);
                     setSelectedDate(null);
                     setSelectedTime(null);
+                    setSelectedDuration(null);
                     setFormData({
                       name: '',
                       email: '',
@@ -363,7 +356,7 @@ export default function AppointmentsSection() {
                     });
                     setSuccess(false);
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   Book Another Appointment
                 </button>

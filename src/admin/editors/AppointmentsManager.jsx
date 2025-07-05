@@ -185,7 +185,43 @@ export default function AppointmentsManager() {
       toast.error('Failed to cancel appointment');
     }
   };
-  
+
+  // Add a handleConfirmAppointment function:
+  const handleConfirmAppointment = async (appointmentId) => {
+    try {
+      const csrfToken = sessionStorage.getItem('csrfToken');
+      const extractedSiteId = window.location.hostname.split('.')[0];
+      
+      const response = await fetch(
+        `/api/appointments?action=confirm&siteId=${extractedSiteId}`, 
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken || '' 
+          },
+          body: JSON.stringify({ appointmentId })
+        }
+      );
+      
+      if (response.ok) {
+        toast.success('Appointment confirmed successfully');
+        // Refresh appointments
+        if (view === 'calendar') {
+          fetchAppointments(selectedDate);
+        } else {
+          fetchAppointmentsList();
+        }
+      } else {
+        toast.error('Failed to confirm appointment');
+      }
+    } catch (error) {
+      console.error('Error confirming appointment:', error);
+      toast.error('Failed to confirm appointment');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
@@ -448,6 +484,14 @@ export default function AppointmentsManager() {
                       </p>
                     </div>
                     <div className="flex items-center">
+                      {appointment.status === 'pending' && (
+                        <button 
+                          onClick={() => handleConfirmAppointment(appointment.id)}
+                          className="text-green-600 mr-2"
+                        >
+                          Confirm
+                        </button>
+                      )}
                       <button 
                         onClick={() => handleEditAppointment(appointment)}
                         className="text-blue-600 mr-2"
