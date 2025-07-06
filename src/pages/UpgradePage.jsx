@@ -31,7 +31,7 @@ export default function UpgradePage() {
     fetchSiteInfo();
   }, []);
 
-  const handlePayment = async (paymentType) => {
+  const handlePayment = async (paymentType, interval = 'monthly') => {
     setLoading(true);
     try {
       if (!stripePromise) {
@@ -46,7 +46,8 @@ export default function UpgradePage() {
         },
         body: JSON.stringify({
           siteId,
-          paymentType, // 'one_time' or 'subscription'
+          paymentType,
+          interval,  // Add this parameter
         }),
       });
       
@@ -114,7 +115,7 @@ export default function UpgradePage() {
                 </li>
               </ul>
               <button
-                onClick={() => handlePayment('subscription')}
+                onClick={() => handlePayment('subscription', 'monthly')}
                 disabled={loading}
                 className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50"
               >
@@ -149,7 +150,7 @@ export default function UpgradePage() {
                 </li>
               </ul>
               <button
-                onClick={() => handlePayment('subscription')}
+                onClick={() => handlePayment('subscription', 'yearly')}
                 disabled={loading}
                 className="w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 disabled:opacity-50"
               >
