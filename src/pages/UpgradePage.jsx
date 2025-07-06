@@ -2,26 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import Layout from '../components/Layout';
 
-// Update the Stripe initialization
-
-// Fix the Stripe initialization
-let stripePromise;
-try {
-  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 
-                    window.STRIPE_PUBLISHABLE_KEY;
-  
-  console.log("Stripe key type:", typeof stripeKey);
-  console.log("Stripe key prefix:", stripeKey?.substring(0, 10));
-  
-  if (stripeKey && !stripeKey.includes('{{') && !stripeKey.includes('%')) {
-    stripePromise = loadStripe(stripeKey);
-  } else {
-    console.error("Invalid Stripe key format:", stripeKey?.substring(0, 10));
-    throw new Error("Invalid Stripe publishable key");
-  }
-} catch (error) {
-  console.error("Error initializing Stripe:", error);
-}
+// Clean and simple Stripe initialization
+const stripePromise = loadStripe('pk_live_51RheRSBHbEWeyFXQSFpPLcvq0nELwXcFmo7nMjBIM7jZBVvRGre1rRJ67qF8Z4LcUO1HCCAD4XrFkADEXvHBZT8v00ypntn2GV');
 
 export default function UpgradePage() {
   const [loading, setLoading] = useState(false);
