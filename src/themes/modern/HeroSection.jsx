@@ -3,8 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 
 function HeroSection({
+  // Change these lines:
   title,
   subtitle,
+  
+  // To match the prop names from your data:
+  headline,
+  subheadline,
+  
   description,
   ctaText,
   ctaUrl,
@@ -62,11 +68,11 @@ function HeroSection({
             transition={{ duration: 0.8 }}
             className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6"
           >
-            {title}
+            {headline /* Change from title to headline */}
           </motion.h1>
           
           <p className="text-xl text-gray-300 mb-10">
-            {subtitle}
+            {subheadline /* Change from subtitle to subheadline */}
           </p>
           
           <div className="flex flex-wrap gap-4 mt-8">

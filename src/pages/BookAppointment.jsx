@@ -41,7 +41,7 @@ export default function BookAppointment() {
   }
 
   return (
-    <Layout>
+    <Layout paddingTop>
       <div className="py-12 bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold text-center mb-3">Book Your Appointment</h1>

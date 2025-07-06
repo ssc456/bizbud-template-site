@@ -4,7 +4,7 @@ import Footer from './Footer';
 import { useEffect, useState } from 'react';
 import { extractSiteId } from '../utils/siteId';
 
-export default function Layout({ children }) {
+export default function Layout({ children, paddingTop = false }) {
   const [content, setContent] = useState({});
   const [config, setConfig] = useState({
     primaryColor: 'blue',
@@ -34,7 +34,7 @@ export default function Layout({ children }) {
         config={config} 
         primaryColor={config.primaryColor} 
       />
-      <main className="flex-grow">
+      <main className={`flex-grow ${paddingTop ? 'pt-28' : ''}`}>
         {children}
       </main>
       <Footer 

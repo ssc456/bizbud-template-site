@@ -70,7 +70,7 @@ export default function UpgradePage() {
   };
 
   return (
-    <Layout>
+    <Layout paddingTop>
       <div className="py-16 px-4 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="p-8 border-b border-gray-200">

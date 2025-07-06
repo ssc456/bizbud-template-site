@@ -81,8 +81,10 @@ function Header({ siteTitle, logoUrl, config, primaryColor }) {
           <div className='flex justify-between items-center h-20'>
             {/* Logo and title */}
             <div className='flex items-center space-x-3'>
-              {logoUrl && <img src={logoUrl} alt='Logo' className='h-10 w-auto sm:h-12 rounded-lg shadow-sm' onError={e => (e.target.style.display = 'none')} />}
-              <h1 className={`text-xl sm:text-2xl font-bold ${shouldUseScrolledStyle ? 'text-gray-900' : 'text-white'}`}>{siteTitle}</h1>
+              <Link to="/" className="flex items-center space-x-3">
+                {logoUrl && <img src={logoUrl} alt='Logo' className='h-10 w-auto sm:h-12 rounded-lg shadow-sm' onError={e => (e.target.style.display = 'none')} />}
+                <h1 className={`text-xl sm:text-2xl font-bold ${shouldUseScrolledStyle ? 'text-gray-900' : 'text-white'}`}>{siteTitle}</h1>
+              </Link>
             </div>
             
             {/* Desktop navigation */}
