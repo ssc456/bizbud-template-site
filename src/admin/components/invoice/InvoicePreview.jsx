@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'react-hot-toast';
-import { isAfter } from 'date-fns';
 
 export default function InvoicePreview({ invoice, onBack }) {
   const [companyInfo, setCompanyInfo] = useState({});
@@ -110,24 +109,6 @@ export default function InvoicePreview({ invoice, onBack }) {
         if (companyInfo.iban) doc.text(`IBAN: ${companyInfo.iban}`, 15, finalY + 65);
       }
 
-      // Add status information
-      if (invoice.status === 'paid') {
-        doc.setTextColor(0, 128, 0); // Green color for paid
-        doc.text('PAID', 170, 40, { align: 'right' });
-        if (invoice.paidDate) {
-          doc.text(`Payment received on ${invoice.paidDate}`, 170, 46, { align: 'right' });
-        }
-        doc.setTextColor(0, 0, 0); // Reset to black
-      } else if (invoice.status === 'partially-paid') {
-        doc.setTextColor(0, 0, 255); // Blue color
-        doc.text('PARTIALLY PAID', 170, 40, { align: 'right' });
-        doc.setTextColor(0, 0, 0);
-      } else if (isAfter(new Date(), new Date(invoice.dueDate))) {
-        doc.setTextColor(255, 0, 0); // Red for overdue
-        doc.text('OVERDUE', 170, 40, { align: 'right' });
-        doc.setTextColor(0, 0, 0);
-      }
-      
       // Save the PDF
       doc.save(`${invoice.invoiceNumber}.pdf`);
       toast.success('PDF downloaded successfully');
@@ -190,13 +171,10 @@ export default function InvoicePreview({ invoice, onBack }) {
                 ? 'bg-green-100 text-green-800' 
                 : invoice.status === 'partially-paid'
                 ? 'bg-blue-100 text-blue-800'
-                : isAfter(new Date(), new Date(invoice.dueDate))
-                ? 'bg-red-100 text-red-800'
                 : 'bg-gray-100 text-gray-800'
             }`}>
               {invoice.status === 'paid' ? 'Paid' : 
-               invoice.status === 'partially-paid' ? 'Partially Paid' : 
-               isAfter(new Date(), new Date(invoice.dueDate)) ? 'Overdue' : 'Unpaid'}
+               invoice.status === 'partially-paid' ? 'Partially Paid' : 'Unpaid'}
               {invoice.paidDate && invoice.status === 'paid' && 
                 <span className="ml-2 text-xs">on {invoice.paidDate}</span>}
             </span>

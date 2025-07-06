@@ -8,7 +8,7 @@ import InvoicePreview from './components/invoice/InvoicePreview';
 
 export default function InvoiceManager() {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('company-info');
+  const [activeSection, setActiveSection] = useState('invoices'); // Changed from 'company-info'
   const [currentInvoice, setCurrentInvoice] = useState(null);
   const [previewMode, setPreviewMode] = useState(false);
   
