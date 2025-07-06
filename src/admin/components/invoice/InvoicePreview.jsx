@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'react-hot-toast';
+import { format } from 'date-fns';
 
 export default function InvoicePreview({ invoice, onBack }) {
   const [companyInfo, setCompanyInfo] = useState({});
@@ -28,88 +29,216 @@ export default function InvoicePreview({ invoice, onBack }) {
     fetchCompanyInfo();
   }, []);
 
+  // Format currency with thousand separators
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      minimumFractionDigits: 2
+    }).format(amount);
+  };
+
   const generatePDF = () => {
     try {
       const doc = new jsPDF();
       
-      // Add company info
-      doc.setFontSize(20);
-      doc.text('INVOICE', 105, 20, { align: 'center' });
+      // Set document properties
+      doc.setProperties({
+        title: `Invoice ${invoice.invoiceNumber}`,
+        subject: `Invoice for ${invoice.client.name}`,
+        creator: companyInfo.name || 'Invoice System'
+      });
+      
+      // Add company info - positioned at the top left
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      doc.text('FROM:', 15, 20);
       
       doc.setFontSize(12);
-      doc.text(companyInfo.name || '', 15, 40);
-      doc.text(companyInfo.address || '', 15, 45);
-      doc.text(`${companyInfo.city || ''}, ${companyInfo.postalCode || ''}`, 15, 50);
-      doc.text(companyInfo.country || '', 15, 55);
-      doc.text(`Phone: ${companyInfo.phone || ''}`, 15, 60);
-      doc.text(`Email: ${companyInfo.email || ''}`, 15, 65);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont(undefined, 'bold');
+      doc.text(companyInfo.name || '', 15, 26);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(10);
+      doc.text(companyInfo.address || '', 15, 31);
+      doc.text(`${companyInfo.city || ''}, ${companyInfo.postalCode || ''}`, 15, 36);
+      doc.text(companyInfo.country || '', 15, 41);
+      doc.text(`Phone: ${companyInfo.phone || ''}`, 15, 46);
+      doc.text(`Email: ${companyInfo.email || ''}`, 15, 51);
       
       if (companyInfo.registrationNumber) {
-        doc.text(`Reg No: ${companyInfo.registrationNumber}`, 15, 70);
+        doc.text(`Reg No: ${companyInfo.registrationNumber}`, 15, 56);
       }
       
       if (companyInfo.taxId) {
-        doc.text(`VAT/Tax ID: ${companyInfo.taxId}`, 15, 75);
+        doc.text(`VAT/Tax ID: ${companyInfo.taxId}`, 15, 61);
       }
       
-      // Add invoice details
-      doc.text('Invoice To:', 140, 40);
-      doc.text(invoice.client.name, 140, 45);
-      doc.text(invoice.client.address || '', 140, 50);
-      doc.text(`${invoice.client.city || ''}, ${invoice.client.postalCode || ''}`, 140, 55);
-      doc.text(invoice.client.country || '', 140, 60);
-      doc.text(`Email: ${invoice.client.email || ''}`, 140, 65);
+      // Add client info - positioned at the top right
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      doc.text('BILL TO:', 140, 20);
       
-      doc.text(`Invoice Number: ${invoice.invoiceNumber}`, 15, 85);
-      doc.text(`Issue Date: ${invoice.issueDate}`, 15, 90);
-      doc.text(`Due Date: ${invoice.dueDate}`, 15, 95);
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont(undefined, 'bold');
+      doc.text(invoice.client.name, 140, 26);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(10);
+      doc.text(invoice.client.address || '', 140, 31);
+      doc.text(`${invoice.client.city || ''}, ${invoice.client.postalCode || ''}`, 140, 36);
+      doc.text(invoice.client.country || '', 140, 41);
+      doc.text(`Email: ${invoice.client.email || ''}`, 140, 46);
       
-      // Add line items
-      const tableColumn = ["Description", "Quantity", "Rate", "Amount"];
+      // Add invoice header - large and centered
+      doc.setFontSize(24);
+      doc.setTextColor(40, 40, 40);
+      doc.setFont(undefined, 'bold');
+      doc.text('INVOICE', 105, 75, { align: 'center' });
+      
+      // Add invoice details below the header
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      const yPos = 85;
+      doc.text('INVOICE NUMBER:', 70, yPos);
+      doc.text('ISSUE DATE:', 70, yPos + 6);
+      doc.text('DUE DATE:', 70, yPos + 12);
+      
+      doc.setTextColor(0, 0, 0);
+      doc.setFont(undefined, 'bold');
+      doc.text(invoice.invoiceNumber, 140, yPos);
+      doc.text(invoice.issueDate, 140, yPos + 6);
+      doc.text(invoice.dueDate, 140, yPos + 12);
+      doc.setFont(undefined, 'normal');
+      
+      // Add line items with improved styling
+      const tableColumn = ["Item Description", "Quantity", "Rate", "Amount"];
       const tableRows = [];
       
       invoice.items.forEach(item => {
         const itemData = [
           item.description,
           item.quantity,
-          `£${item.rate.toFixed(2)}`,
-          `£${item.amount.toFixed(2)}`
+          formatCurrency(item.rate),
+          formatCurrency(item.amount)
         ];
         tableRows.push(itemData);
       });
       
+      // Add some space before the table
+      const startY = 105;
+      
       autoTable(doc, {
-        startY: 105,
+        startY,
         head: [tableColumn],
         body: tableRows,
-        theme: 'striped',
-        headStyles: { fillColor: [66, 139, 202] }
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [60, 60, 60], 
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          halign: 'left' 
+        },
+        columnStyles: {
+          0: { cellWidth: 'auto' },
+          1: { halign: 'center', cellWidth: 25 },
+          2: { halign: 'right', cellWidth: 35 },
+          3: { halign: 'right', cellWidth: 35 }
+        },
+        styles: {
+          fontSize: 10,
+          cellPadding: 5,
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        }
       });
       
-      // Fix how you access the finalY:
-      const finalY = doc.lastAutoTable.finalY || 150;
+      // Get the final Y position after the table is rendered
+      const finalY = doc.lastAutoTable.finalY;
       
-      // Add totals
-      doc.text(`Subtotal: £${invoice.subtotal.toFixed(2)}`, 140, finalY + 10);
-      doc.text(`VAT (${invoice.taxRate}%): £${invoice.taxAmount.toFixed(2)}`, 140, finalY + 15);
-      doc.text(`Total: £${invoice.total.toFixed(2)}`, 140, finalY + 20);
+      // Add totals section with professional styling
+      const totalsX = 130;
+      let currentY = finalY + 10;
+      
+      // Add subtotal
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      doc.text('Subtotal:', totalsX, currentY);
+      doc.setTextColor(0, 0, 0);
+      doc.text(formatCurrency(invoice.subtotal), 195, currentY, { align: 'right' });
+      
+      // Add tax
+      currentY += 6;
+      doc.setTextColor(80, 80, 80);
+      doc.text(`VAT (${invoice.taxRate}%):`, totalsX, currentY);
+      doc.setTextColor(0, 0, 0);
+      doc.text(formatCurrency(invoice.taxAmount), 195, currentY, { align: 'right' });
+      
+      // Add total
+      currentY += 8;
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Total:', totalsX, currentY);
+      doc.text(formatCurrency(invoice.total), 195, currentY, { align: 'right' });
       
       // Add notes
       if (invoice.notes) {
-        doc.text('Notes:', 15, finalY + 30);
-        doc.text(invoice.notes, 15, finalY + 35);
+        currentY += 20;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(80, 80, 80);
+        doc.text('Notes:', 15, currentY);
+        doc.setFont(undefined, 'normal');
+        
+        // Split notes into multiple lines if needed
+        const splitNotes = doc.splitTextToSize(invoice.notes, 180);
+        doc.text(splitNotes, 15, currentY + 6);
+        currentY += 6 + (splitNotes.length * 5);
       }
       
       // Add payment information
       if (companyInfo.bankName || companyInfo.accountNumber) {
-        doc.text('Payment Information:', 15, finalY + 45);
-        if (companyInfo.bankName) doc.text(`Bank: ${companyInfo.bankName}`, 15, finalY + 50);
-        if (companyInfo.accountNumber) doc.text(`Account Number: ${companyInfo.accountNumber}`, 15, finalY + 55);
-        if (companyInfo.sortCode) doc.text(`Sort Code: ${companyInfo.sortCode}`, 15, finalY + 60);
-        if (companyInfo.iban) doc.text(`IBAN: ${companyInfo.iban}`, 15, finalY + 65);
+        currentY += 15;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(80, 80, 80);
+        doc.text('Payment Information:', 15, currentY);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0, 0, 0);
+        
+        currentY += 6;
+        if (companyInfo.bankName) {
+          doc.text(`Bank: ${companyInfo.bankName}`, 15, currentY);
+          currentY += 5;
+        }
+        
+        if (companyInfo.accountNumber) {
+          doc.text(`Account Number: ${companyInfo.accountNumber}`, 15, currentY);
+          currentY += 5;
+        }
+        
+        if (companyInfo.sortCode) {
+          doc.text(`Sort Code: ${companyInfo.sortCode}`, 15, currentY);
+          currentY += 5;
+        }
+        
+        if (companyInfo.iban) {
+          doc.text(`IBAN: ${companyInfo.iban}`, 15, currentY);
+        }
       }
-
-      // Save the PDF
+      
+      // Add a footer
+      const pageCount = doc.internal.getNumberOfPages();
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.text(`Generated on ${format(new Date(), 'dd MMM yyyy')} | Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+      }
+      
+      // Save the PDF with invoice number in filename
       doc.save(`${invoice.invoiceNumber}.pdf`);
       toast.success('PDF downloaded successfully');
     } catch (error) {
@@ -118,6 +247,7 @@ export default function InvoicePreview({ invoice, onBack }) {
     }
   };
 
+  // Render the web preview with the improved design
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -149,55 +279,32 @@ export default function InvoicePreview({ invoice, onBack }) {
         </div>
       </div>
       
-      {/* Preview content */}
+      {/* Preview content with improved styling */}
       <div className="p-6 max-w-4xl mx-auto">
-        {/* Invoice header */}
-        <div className="flex flex-col md:flex-row md:justify-between mb-10">
-          <div className="mb-6 md:mb-0">
-            <h2 className="text-2xl font-bold text-gray-800 mb-1">INVOICE</h2>
-            <p className="text-gray-600">#{invoice.invoiceNumber}</p>
-          </div>
-          <div className="text-right">
-            <div className="text-gray-800 mb-1"><span className="font-semibold">Issue Date:</span> {invoice.issueDate}</div>
-            <div className="text-gray-800"><span className="font-semibold">Due Date:</span> {invoice.dueDate}</div>
-          </div>
+        {/* Invoice header with professional styling */}
+        <div className="flex justify-center mb-8">
+          <h1 className="text-3xl font-bold tracking-wide text-gray-800">INVOICE</h1>
         </div>
         
-        {/* Status Badge */}
-        {invoice.status && (
-          <div className="mb-4 flex justify-end">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-              invoice.status === 'paid' 
-                ? 'bg-green-100 text-green-800' 
-                : invoice.status === 'partially-paid'
-                ? 'bg-blue-100 text-blue-800'
-                : 'bg-gray-100 text-gray-800'
-            }`}>
-              {invoice.status === 'paid' ? 'Paid' : 
-               invoice.status === 'partially-paid' ? 'Partially Paid' : 'Unpaid'}
-              {invoice.paidDate && invoice.status === 'paid' && 
-                <span className="ml-2 text-xs">on {invoice.paidDate}</span>}
-            </span>
-          </div>
-        )}
-        
-        {/* Company and client info */}
-        <div className="flex flex-col md:flex-row justify-between mb-10">
-          <div className="mb-6 md:mb-0">
-            <h3 className="text-gray-800 font-semibold mb-2">From:</h3>
-            <div className="text-gray-600">{companyInfo.name}</div>
+        <div className="grid grid-cols-2 gap-8 mb-10">
+          {/* From section */}
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">From:</h3>
+            <div className="text-gray-800 font-semibold text-lg mb-1">{companyInfo.name}</div>
             <div className="text-gray-600">{companyInfo.address}</div>
             <div className="text-gray-600">{companyInfo.city}, {companyInfo.postalCode}</div>
             <div className="text-gray-600">{companyInfo.country}</div>
-            <div className="text-gray-600 mt-2">{companyInfo.email}</div>
-            <div className="text-gray-600">{companyInfo.phone}</div>
+            <div className="text-gray-600 mt-2">{companyInfo.phone}</div>
+            <div className="text-gray-600">{companyInfo.email}</div>
             {companyInfo.taxId && (
               <div className="text-gray-600 mt-2">VAT/Tax ID: {companyInfo.taxId}</div>
             )}
           </div>
-          <div className="mb-6 md:mb-0">
-            <h3 className="text-gray-800 font-semibold mb-2">To:</h3>
-            <div className="text-gray-600">{invoice.client.name}</div>
+          
+          {/* Bill to section */}
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Bill to:</h3>
+            <div className="text-gray-800 font-semibold text-lg mb-1">{invoice.client.name}</div>
             {invoice.client.address && <div className="text-gray-600">{invoice.client.address}</div>}
             {(invoice.client.city || invoice.client.postalCode) && (
               <div className="text-gray-600">{invoice.client.city}, {invoice.client.postalCode}</div>
@@ -207,60 +314,104 @@ export default function InvoicePreview({ invoice, onBack }) {
           </div>
         </div>
         
-        {/* Invoice items */}
-        <div className="overflow-x-auto mb-8">
+        {/* Invoice details */}
+        <div className="bg-gray-50 p-4 rounded-lg mb-8 flex flex-wrap justify-between">
+          <div className="mb-3 md:mb-0">
+            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Invoice Number</div>
+            <div className="text-gray-800 font-semibold">{invoice.invoiceNumber}</div>
+          </div>
+          <div className="mb-3 md:mb-0">
+            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Issue Date</div>
+            <div className="text-gray-800">{invoice.issueDate}</div>
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Due Date</div>
+            <div className="text-gray-800">{invoice.dueDate}</div>
+          </div>
+          
+          {/* Status Badge */}
+          {invoice.status && (
+            <div>
+              <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Status</div>
+              <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium ${
+                invoice.status === 'paid' 
+                  ? 'bg-green-100 text-green-800' 
+                  : invoice.status === 'partially-paid'
+                  ? 'bg-blue-100 text-blue-800'
+                  : isBefore(new Date(), new Date(invoice.dueDate))
+                  ? 'bg-gray-100 text-gray-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {invoice.status === 'paid' ? 'Paid' : 
+                 invoice.status === 'partially-paid' ? 'Partially Paid' : 
+                 isBefore(new Date(), new Date(invoice.dueDate)) ? 'Unpaid' : 'Overdue'}
+                {invoice.paidDate && invoice.status === 'paid' && 
+                  <span className="ml-2 text-xs">on {invoice.paidDate}</span>}
+              </span>
+            </div>
+          )}
+        </div>
+        
+        {/* Invoice items with better styling */}
+        <div className="mb-8 overflow-hidden border border-gray-200 rounded-lg">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="px-4 py-3 text-left">Description</th>
-                <th className="px-4 py-3 text-right">Quantity</th>
-                <th className="px-4 py-3 text-right">Rate</th>
-                <th className="px-4 py-3 text-right">Amount</th>
+              <tr className="bg-gray-800 text-white">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Quantity</th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Rate</th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Amount</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white divide-y divide-gray-200">
               {invoice.items.map((item, index) => (
-                <tr key={index} className="border-t border-gray-200">
-                  <td className="px-4 py-3">{item.description}</td>
-                  <td className="px-4 py-3 text-right">{item.quantity}</td>
-                  <td className="px-4 py-3 text-right">£{item.rate.toFixed(2)}</td>
-                  <td className="px-4 py-3 text-right">£{item.amount.toFixed(2)}</td>
+                <tr key={index} className={index % 2 === 1 ? 'bg-gray-50' : ''}>
+                  <td className="px-6 py-4 whitespace-normal">
+                    <div className="text-sm text-gray-900">{item.description}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">{item.quantity}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">{formatCurrency(item.rate)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900 font-medium">{formatCurrency(item.amount)}</td>
                 </tr>
               ))}
             </tbody>
-            <tfoot className="border-t border-gray-200">
-              <tr>
-                <td colSpan="3" className="px-4 py-3 text-right font-semibold">Subtotal</td>
-                <td className="px-4 py-3 text-right">£{invoice.subtotal.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td colSpan="3" className="px-4 py-3 text-right font-semibold">VAT ({invoice.taxRate}%)</td>
-                <td className="px-4 py-3 text-right">£{invoice.taxAmount.toFixed(2)}</td>
-              </tr>
-              <tr className="font-bold">
-                <td colSpan="3" className="px-4 py-3 text-right">Total</td>
-                <td className="px-4 py-3 text-right">£{invoice.total.toFixed(2)}</td>
-              </tr>
-            </tfoot>
           </table>
+        </div>
+        
+        {/* Totals with better styling */}
+        <div className="flex justify-end mb-8">
+          <div className="w-64 space-y-3">
+            <div className="flex justify-between border-b pb-3">
+              <span className="text-sm text-gray-600">Subtotal:</span>
+              <span className="text-sm text-gray-900 font-medium">{formatCurrency(invoice.subtotal)}</span>
+            </div>
+            <div className="flex justify-between border-b pb-3">
+              <span className="text-sm text-gray-600">VAT ({invoice.taxRate}%):</span>
+              <span className="text-sm text-gray-900 font-medium">{formatCurrency(invoice.taxAmount)}</span>
+            </div>
+            <div className="flex justify-between pt-2">
+              <span className="text-base text-gray-800 font-semibold">Total:</span>
+              <span className="text-base text-gray-900 font-bold">{formatCurrency(invoice.total)}</span>
+            </div>
+          </div>
         </div>
         
         {/* Notes */}
         {invoice.notes && (
-          <div className="mb-8">
-            <h3 className="text-gray-800 font-semibold mb-2">Notes:</h3>
-            <p className="text-gray-600 whitespace-pre-wrap">{invoice.notes}</p>
+          <div className="mb-8 bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Notes:</h3>
+            <p className="text-gray-600 whitespace-pre-wrap text-sm">{invoice.notes}</p>
           </div>
         )}
         
         {/* Payment info */}
         {(companyInfo.bankName || companyInfo.accountNumber) && (
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-gray-800 font-semibold mb-2">Payment Information:</h3>
-            {companyInfo.bankName && <div className="text-gray-600">Bank: {companyInfo.bankName}</div>}
-            {companyInfo.accountNumber && <div className="text-gray-600">Account Number: {companyInfo.accountNumber}</div>}
-            {companyInfo.sortCode && <div className="text-gray-600">Sort Code: {companyInfo.sortCode}</div>}
-            {companyInfo.iban && <div className="text-gray-600">IBAN: {companyInfo.iban}</div>}
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Payment Information:</h3>
+            {companyInfo.bankName && <div className="text-gray-600 text-sm">Bank: {companyInfo.bankName}</div>}
+            {companyInfo.accountNumber && <div className="text-gray-600 text-sm">Account Number: {companyInfo.accountNumber}</div>}
+            {companyInfo.sortCode && <div className="text-gray-600 text-sm">Sort Code: {companyInfo.sortCode}</div>}
+            {companyInfo.iban && <div className="text-gray-600 text-sm">IBAN: {companyInfo.iban}</div>}
           </div>
         )}
       </div>

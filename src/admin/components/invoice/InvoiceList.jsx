@@ -191,6 +191,23 @@ export default function InvoiceList({ onSelectInvoice }) {
     })
     .reduce((sum, inv) => sum + inv.total, 0);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (!event.target.closest('.status-dropdown-container')) {
+        // Close all dropdowns when clicking outside
+        setInvoices(prev => prev.map(inv => ({
+          ...inv,
+          showDropdown: false
+        })));
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -394,35 +411,67 @@ export default function InvoiceList({ onSelectInvoice }) {
                             View
                           </button>
                           
-                          <div className="relative group">
-                            <button className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-gray-700 bg-gray-100 hover:bg-gray-200">
+                          <div className="relative">
+                            <button 
+                              onClick={() => {
+                                // Toggle the dropdown for this specific invoice
+                                setInvoices(invoices.map(inv => ({
+                                  ...inv,
+                                  showDropdown: inv.id === invoice.id ? !inv.showDropdown : false
+                                })))
+                              }}
+                              className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-gray-700 bg-gray-100 hover:bg-gray-200"
+                            >
                               Status
                               <svg className="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                               </svg>
                             </button>
-                            <div className="hidden group-hover:block absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10">
-                              <div className="py-1">
-                                <button 
-                                  onClick={() => updateInvoiceStatus(invoice.id, 'paid')}
-                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  Mark as Paid
-                                </button>
-                                <button 
-                                  onClick={() => updateInvoiceStatus(invoice.id, 'partially-paid')}
-                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  Mark as Partially Paid
-                                </button>
-                                <button 
-                                  onClick={() => updateInvoiceStatus(invoice.id, 'unpaid')}
-                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  Mark as Unpaid
-                                </button>
+                            {invoice.showDropdown && (
+                              <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10">
+                                <div className="py-1">
+                                  <button 
+                                    onClick={() => {
+                                      updateInvoiceStatus(invoice.id, 'paid');
+                                      // Close dropdown after selection
+                                      setInvoices(invoices.map(inv => ({
+                                        ...inv,
+                                        showDropdown: false
+                                      })))
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                    Mark as Paid
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      updateInvoiceStatus(invoice.id, 'partially-paid');
+                                      // Close dropdown after selection
+                                      setInvoices(invoices.map(inv => ({
+                                        ...inv,
+                                        showDropdown: false
+                                      })))
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                    Mark as Partially Paid
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      updateInvoiceStatus(invoice.id, 'unpaid');
+                                      // Close dropdown after selection
+                                      setInvoices(invoices.map(inv => ({
+                                        ...inv,
+                                        showDropdown: false
+                                      })))
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                    Mark as Unpaid
+                                  </button>
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                         </div>
                       </td>
