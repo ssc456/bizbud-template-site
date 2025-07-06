@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { Link } from 'react-router-dom'; // Added Link import
+
 
 function HeroSection({
   headline,
@@ -10,7 +12,8 @@ function HeroSection({
   primaryColor,
   secondaryColor,
   backgroundImage,
-  animations = true
+  animations = true,
+  showAppointments = false // Added this prop
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
@@ -183,19 +186,37 @@ const scrollToNext = () => {
                 animate={isVisible ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: 0.9 }}
               >
-                <button
-                  onClick={handleCTAClick}
-                  className={`group px-8 py-4 ${colorClasses.button} text-white font-semibold rounded-full shadow-xl hover:shadow-2xl ${colorClasses.glow} transform hover:scale-105 transition-all duration-300 flex items-center space-x-2`}
-                >
-                  <motion.span
-                    initial={{ x: 0 }}
-                    whileHover={{ x: 4 }}
+                {showAppointments ? (
+                  // Use Link for booking page when appointments are enabled
+                  <Link
+                    to="/book-appointment"
+                    className={`group px-8 py-4 ${colorClasses.button} text-white font-semibold rounded-full shadow-xl hover:shadow-2xl ${colorClasses.glow} transform hover:scale-105 transition-all duration-300 flex items-center space-x-2`}
                   >
-                    {ctaText || "Get Started"}
-                  </motion.span>
-                  <ChevronDown size={20} className="group-hover:translate-x-1 transition-transform" />
-                </button>
+                    <motion.span
+                      initial={{ x: 0 }}
+                      whileHover={{ x: 4 }}
+                    >
+                      Book Now
+                    </motion.span>
+                    <ChevronDown size={20} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                ) : (
+                  // Original scroll-to behavior for non-appointment sites
+                  <button
+                    onClick={handleCTAClick}
+                    className={`group px-8 py-4 ${colorClasses.button} text-white font-semibold rounded-full shadow-xl hover:shadow-2xl ${colorClasses.glow} transform hover:scale-105 transition-all duration-300 flex items-center space-x-2`}
+                  >
+                    <motion.span
+                      initial={{ x: 0 }}
+                      whileHover={{ x: 4 }}
+                    >
+                      {ctaText || "Get Started"}
+                    </motion.span>
+                    <ChevronDown size={20} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
                 
+                {/* Second button remains unchanged */}
                 <button
                   onClick={scrollToNext}
                   className="px-8 py-4 backdrop-blur-sm bg-white/20 border border-white/50 text-white font-semibold rounded-full hover:bg-white/30 transition-all duration-300"

@@ -1,15 +1,21 @@
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 
 function HeroSection({
-  headline,
-  subheadline,
+  title,
+  subtitle,
+  description,
   ctaText,
-  ctaLink,
+  ctaUrl,
+  secondaryCtaText,
+  secondaryCtaUrl,
+  backgroundImage,
+  overlayOpacity,
   primaryColor,
   secondaryColor,
-  backgroundImage
+  animations,
+  showAppointments
 }) {
   const navigate = useNavigate();
   
@@ -38,7 +44,7 @@ function HeroSection({
   }[primaryColor] || colorClasses.blue;
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center">
+    <section id="hero" className={`relative min-h-screen flex items-center text-white ${animations ? 'overflow-hidden' : ''}`}>
       {/* Background with blur effect */}
       <div className="absolute inset-0 bg-gray-900 opacity-80 z-0"></div>
       
@@ -49,122 +55,45 @@ function HeroSection({
       
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Left column with text content */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-white"
+        <div className="max-w-3xl">
+          <motion.h1 
+            initial={animations ? { opacity: 0, y: 20 } : false}
+            animate={animations ? { opacity: 1, y: 0 } : false}
+            transition={{ duration: 0.8 }}
+            className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6"
           >
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: "100px" }}
-              transition={{ duration: 1, delay: 0.2 }}
-              className={`h-1 bg-gradient-to-r ${colorClasses.gradient} mb-8`}
-            ></motion.div>
-            
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              {headline}
-            </h1>
-            
-            <p className="text-xl text-gray-300 mb-10">
-              {subheadline}
-            </p>
-            
-            <div className="flex flex-wrap gap-4">
-              <motion.button
-                onClick={() => {
-                  if (ctaLink.startsWith('#')) {
-                    const element = document.querySelector(ctaLink);
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  } else if (ctaLink === '/create') {
-                    navigate('/create');
-                  }
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-                className={`${colorClasses.button} px-8 py-4 rounded-lg font-medium flex items-center space-x-2`}
-              >
-                <span>{ctaText || "Get Started"}</span>
-                <ChevronRight size={20} />
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 text-white px-8 py-4 rounded-lg font-medium hover:bg-opacity-20 transition-all"
-              >
-                Learn More
-              </motion.button>
-            </div>
-          </motion.div>
+            {title}
+          </motion.h1>
           
-          {/* Right column with floating elements */}
-          <div className="hidden lg:block relative">
-            <motion.div 
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="relative z-10"
+          <p className="text-xl text-gray-300 mb-10">
+            {subtitle}
+          </p>
+          
+          <div className="flex flex-wrap gap-4 mt-8">
+            {/* Primary CTA - Change to Link if showAppointments is true */}
+            {showAppointments ? (
+              <Link 
+                to="/book-appointment"
+                className={`px-8 py-3 rounded-lg font-medium bg-gradient-to-r ${colorClasses.gradient} text-white hover:opacity-90 transition-opacity`}
+              >
+                Book Now
+              </Link>
+            ) : (
+              <a 
+                href={ctaUrl || "#contact"} 
+                className={`px-8 py-3 rounded-lg font-medium bg-gradient-to-r ${colorClasses.gradient} text-white hover:opacity-90 transition-opacity`}
+              >
+                {ctaText || "Contact Us"}
+              </a>
+            )}
+            
+            {/* Secondary CTA */}
+            <a 
+              href={secondaryCtaUrl || "#about"} 
+              className="px-8 py-3 rounded-lg font-medium bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
             >
-              <div className="relative">
-                {/* Main shape */}
-                <div className="w-full h-80 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl overflow-hidden shadow-2xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-black opacity-50"></div>
-                  
-                  {/* Decorative elements */}
-                  <div className={`absolute -top-10 -right-10 w-40 h-40 ${colorClasses.text} bg-opacity-10 rounded-full blur-2xl`}></div>
-                  <div className={`absolute -bottom-10 -left-10 w-40 h-40 ${colorClasses.text} bg-opacity-10 rounded-full blur-2xl`}></div>
-                  
-                  {/* Content inside shape */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className={`${colorClasses.text} text-5xl font-bold mb-2 opacity-80`}>
-                        <span className="sr-only">Icon</span>
-                        ★
-                      </div>
-                      <h3 className="text-xl font-semibold">Premium Quality</h3>
-                      <p className="text-sm text-gray-400 mt-2 max-w-xs mx-auto">
-                        Our services are crafted with attention to detail and excellence
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Floating element 1 */}
-                <motion.div
-                  initial={{ x: -30, y: -30, opacity: 0 }}
-                  animate={{ x: -60, y: -60, opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.8 }}
-                  className={`absolute w-40 h-40 ${colorClasses.button} rounded-xl shadow-xl`}
-                >
-                  <div className="h-full flex items-center justify-center text-white">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold">100%</div>
-                      <div className="text-sm mt-1">Satisfaction</div>
-                    </div>
-                  </div>
-                </motion.div>
-                
-                {/* Floating element 2 */}
-                <motion.div
-                  initial={{ x: 30, y: 30, opacity: 0 }}
-                  animate={{ x: 60, y: 140, opacity: 1 }}
-                  transition={{ delay: 0.9, duration: 0.8 }}
-                  className="absolute w-40 h-40 bg-white rounded-xl shadow-xl"
-                >
-                  <div className="h-full flex items-center justify-center">
-                    <div className="text-center">
-                      <div className={`${colorClasses.text} text-3xl font-bold`}>24/7</div>
-                      <div className="text-gray-600 text-sm mt-1">Support Available</div>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            </motion.div>
+              {secondaryCtaText || "Learn More"}
+            </a>
           </div>
         </div>
       </div>

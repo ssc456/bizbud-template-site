@@ -213,7 +213,7 @@ function App() {
             <Header siteTitle={content.siteTitle} logoUrl={content.logoUrl} config={config} primaryColor={config.primaryColor} />
             <AnimatePresence mode='wait'>
               {config.showHero && (
-                <ThemedHeroSection key='hero' {...content.hero} primaryColor={config.primaryColor} secondaryColor={config.secondaryColor} animations={config.animations} />
+                <ThemedHeroSection key='hero' {...content.hero} primaryColor={config.primaryColor} secondaryColor={config.secondaryColor} animations={config.animations} showAppointments={config.showAppointments} />
               )}
               {config.showAbout && <ThemedAboutSection key='about' {...content.about} primaryColor={config.primaryColor} logoUrl={content.logoUrl} />}
               {config.showServices && <ThemedServicesSection key='services' {...content.services} primaryColor={config.primaryColor} secondaryColor={config.secondaryColor} />}
@@ -221,8 +221,7 @@ function App() {
               {config.showGallery && <ThemedGallerySection key='gallery' {...content.gallery} primaryColor={config.primaryColor} />}
               {config.showTestimonials && <ThemedTestimonialsSection key='testimonials' {...content.testimonials} primaryColor={config.primaryColor} />}
               {config.showFAQ && <ThemedFAQSection key='faq' {...content.faq} primaryColor={config.primaryColor} />}
-              {config.showContact && <ThemedContactSection key='contact' {...content.contact} primaryColor={config.primaryColor} />}
-              {config.showAppointments && <AppointmentsSection key="appointments" />}
+              {config.showContact && <ThemedContactSection key='contact' {...content.contact} primaryColor={config.primaryColor} clientData={clientData} />}
               {paymentTier === 'FREE' && <PremiumOverlay />}
 
             </AnimatePresence>
