@@ -133,6 +133,11 @@ async function saveInvoice(req, res, siteId) {
       return res.status(400).json({ error: 'Invoice is required' });
     }
     
+    // Ensure invoice has a status
+    if (!invoice.status) {
+      invoice.status = 'unpaid';
+    }
+    
     // Get existing invoices
     let invoices = await redis.get(`site:${siteId}:invoicing:invoices`) || [];
     

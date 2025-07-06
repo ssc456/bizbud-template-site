@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 
 export default function InvoiceEditor() {
@@ -42,6 +42,7 @@ export default function InvoiceEditor() {
     taxAmount: 0,
     total: 0,
     notes: 'Payment is due within 30 days. Thank you for your business.',
+    status: 'unpaid', // Add status field with default 'unpaid'
   });
   
   const [isEditing, setIsEditing] = useState(false);
@@ -243,6 +244,7 @@ export default function InvoiceEditor() {
       taxAmount: 0,
       total: 0,
       notes: 'Payment is due within 30 days. Thank you for your business.',
+      status: 'unpaid',
     });
     setIsEditing(false);
   };
@@ -313,7 +315,7 @@ export default function InvoiceEditor() {
         tableRows.push(itemData);
       });
       
-      doc.autoTable({
+      autoTable(doc, {
         startY: 105,
         head: [tableColumn],
         body: tableRows,
@@ -322,7 +324,7 @@ export default function InvoiceEditor() {
       });
       
       // Add totals
-      const finalY = doc.autoTable.previous.finalY || 150;
+      const finalY = doc.lastAutoTable.finalY || 150;
       doc.text(`Subtotal: £${currentInvoice.subtotal.toFixed(2)}`, 140, finalY + 10);
       doc.text(`VAT (${currentInvoice.taxRate}%): £${currentInvoice.taxAmount.toFixed(2)}`, 140, finalY + 15);
       doc.text(`Total: £${currentInvoice.total.toFixed(2)}`, 140, finalY + 20);

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { toast } from 'react-hot-toast';
+import { isAfter } from 'date-fns';
 
 export default function InvoicePreview({ invoice, onBack }) {
   const [companyInfo, setCompanyInfo] = useState({});
@@ -78,7 +79,7 @@ export default function InvoicePreview({ invoice, onBack }) {
         tableRows.push(itemData);
       });
       
-      doc.autoTable({
+      autoTable(doc, {
         startY: 105,
         head: [tableColumn],
         body: tableRows,
@@ -86,8 +87,10 @@ export default function InvoicePreview({ invoice, onBack }) {
         headStyles: { fillColor: [66, 139, 202] }
       });
       
+      // Fix how you access the finalY:
+      const finalY = doc.lastAutoTable.finalY || 150;
+      
       // Add totals
-      const finalY = doc.autoTable.previous.finalY || 150;
       doc.text(`Subtotal: £${invoice.subtotal.toFixed(2)}`, 140, finalY + 10);
       doc.text(`VAT (${invoice.taxRate}%): £${invoice.taxAmount.toFixed(2)}`, 140, finalY + 15);
       doc.text(`Total: £${invoice.total.toFixed(2)}`, 140, finalY + 20);
@@ -105,6 +108,24 @@ export default function InvoicePreview({ invoice, onBack }) {
         if (companyInfo.accountNumber) doc.text(`Account Number: ${companyInfo.accountNumber}`, 15, finalY + 55);
         if (companyInfo.sortCode) doc.text(`Sort Code: ${companyInfo.sortCode}`, 15, finalY + 60);
         if (companyInfo.iban) doc.text(`IBAN: ${companyInfo.iban}`, 15, finalY + 65);
+      }
+
+      // Add status information
+      if (invoice.status === 'paid') {
+        doc.setTextColor(0, 128, 0); // Green color for paid
+        doc.text('PAID', 170, 40, { align: 'right' });
+        if (invoice.paidDate) {
+          doc.text(`Payment received on ${invoice.paidDate}`, 170, 46, { align: 'right' });
+        }
+        doc.setTextColor(0, 0, 0); // Reset to black
+      } else if (invoice.status === 'partially-paid') {
+        doc.setTextColor(0, 0, 255); // Blue color
+        doc.text('PARTIALLY PAID', 170, 40, { align: 'right' });
+        doc.setTextColor(0, 0, 0);
+      } else if (isAfter(new Date(), new Date(invoice.dueDate))) {
+        doc.setTextColor(255, 0, 0); // Red for overdue
+        doc.text('OVERDUE', 170, 40, { align: 'right' });
+        doc.setTextColor(0, 0, 0);
       }
       
       // Save the PDF
@@ -160,6 +181,27 @@ export default function InvoicePreview({ invoice, onBack }) {
             <div className="text-gray-800"><span className="font-semibold">Due Date:</span> {invoice.dueDate}</div>
           </div>
         </div>
+        
+        {/* Status Badge */}
+        {invoice.status && (
+          <div className="mb-4 flex justify-end">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              invoice.status === 'paid' 
+                ? 'bg-green-100 text-green-800' 
+                : invoice.status === 'partially-paid'
+                ? 'bg-blue-100 text-blue-800'
+                : isAfter(new Date(), new Date(invoice.dueDate))
+                ? 'bg-red-100 text-red-800'
+                : 'bg-gray-100 text-gray-800'
+            }`}>
+              {invoice.status === 'paid' ? 'Paid' : 
+               invoice.status === 'partially-paid' ? 'Partially Paid' : 
+               isAfter(new Date(), new Date(invoice.dueDate)) ? 'Overdue' : 'Unpaid'}
+              {invoice.paidDate && invoice.status === 'paid' && 
+                <span className="ml-2 text-xs">on {invoice.paidDate}</span>}
+            </span>
+          </div>
+        )}
         
         {/* Company and client info */}
         <div className="flex flex-col md:flex-row justify-between mb-10">
