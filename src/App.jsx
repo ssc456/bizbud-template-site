@@ -209,6 +209,7 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
+        <Route path="/admin/invoices" element={<InvoiceManager />} />
         <Route path="/admin/appointments" element={<AppointmentsAdmin />} /> {/* Add this route */}
         <Route path="/" element={
           <div className='min-h-screen bg-white scroll-smooth'>
