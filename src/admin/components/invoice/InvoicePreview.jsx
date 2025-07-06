@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
+import { format, isBefore } from 'date-fns';
 
 export default function InvoicePreview({ invoice, onBack }) {
   const [companyInfo, setCompanyInfo] = useState({});
