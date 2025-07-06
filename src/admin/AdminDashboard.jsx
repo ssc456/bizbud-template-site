@@ -164,10 +164,9 @@ export default function AdminDashboard() {
     },
     { 
       id: 'invoicing', 
-      label: 'Invoicing', 
-      path: '/admin/dashboard/invoicing',
+      label: 'Invoicing',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
       ),
@@ -242,18 +241,33 @@ export default function AdminDashboard() {
         <div className="flex-1 overflow-y-auto py-2">
           <nav className="space-y-1 px-2">
             {navItems.map(item => (
-              <Link
-                key={item.id}
-                to={item.path}
-                className={`flex items-center px-4 py-2 text-sm rounded-md ${
-                  activeSection === item.id
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
+              item.path ? (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  className={`flex items-center px-4 py-2 text-sm rounded-md ${
+                    activeSection === item.id
+                      ? 'bg-gray-900 text-white'
+                      : 'text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              ) : (
+                <button
+                  key={item.id}
+                  onClick={item.onClick}
+                  className={`flex items-center px-4 py-2 text-sm rounded-md w-full text-left ${
+                    activeSection === item.id
+                      ? 'bg-gray-900 text-white'
+                      : 'text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              )
             ))}
           </nav>
         </div>
