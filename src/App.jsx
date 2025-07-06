@@ -228,7 +228,7 @@ function App() {
               {config.showGallery && <ThemedGallerySection key='gallery' {...content.gallery} primaryColor={config.primaryColor} />}
               {config.showTestimonials && <ThemedTestimonialsSection key='testimonials' {...content.testimonials} primaryColor={config.primaryColor} />}
               {config.showFAQ && <ThemedFAQSection key='faq' {...content.faq} primaryColor={config.primaryColor} />}
-              {config.showContact && <ThemedContactSection key='contact' {...content.contact} primaryColor={config.primaryColor} clientData={clientData} />}
+              {config.showContact && <ThemedContactSection key='contact' {...content.contact} primaryColor={config.primaryColor} clientData={content} />}
               {paymentTier === 'FREE' && <PremiumOverlay />}
 
             </AnimatePresence>
