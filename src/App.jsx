@@ -213,7 +213,14 @@ function App() {
             <Header siteTitle={content.siteTitle} logoUrl={content.logoUrl} config={config} primaryColor={config.primaryColor} />
             <AnimatePresence mode='wait'>
               {config.showHero && (
-                <ThemedHeroSection key='hero' {...content.hero} primaryColor={config.primaryColor} secondaryColor={config.secondaryColor} animations={config.animations} showAppointments={config.showAppointments} />
+                <ThemedHeroSection 
+                  key='hero' 
+                  {...content.hero} 
+                  primaryColor={config.primaryColor} 
+                  secondaryColor={config.secondaryColor} 
+                  animations={config.animations}
+                  showAppointments={config.showAppointments} // Add this line
+                />
               )}
               {config.showAbout && <ThemedAboutSection key='about' {...content.about} primaryColor={config.primaryColor} logoUrl={content.logoUrl} />}
               {config.showServices && <ThemedServicesSection key='services' {...content.services} primaryColor={config.primaryColor} secondaryColor={config.secondaryColor} />}
