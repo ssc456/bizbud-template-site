@@ -2,19 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import Layout from '../components/Layout';
 
+// Update the Stripe initialization
+
 // Fix the Stripe initialization
 let stripePromise;
 try {
-  // Try all possible ways to get the Stripe publishable key
   const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 
-                    window.STRIPE_PUBLISHABLE_KEY ||
-                    process.env.STRIPE_PUBLISHABLE_KEY;
+                    window.STRIPE_PUBLISHABLE_KEY;
   
-  if (stripeKey) {
-    console.log("Using Stripe key:", stripeKey.substring(0, 8) + "...");
+  console.log("Stripe key type:", typeof stripeKey);
+  console.log("Stripe key prefix:", stripeKey?.substring(0, 10));
+  
+  if (stripeKey && !stripeKey.includes('{{') && !stripeKey.includes('%')) {
     stripePromise = loadStripe(stripeKey);
   } else {
-    console.error("No Stripe publishable key found!");
+    console.error("Invalid Stripe key format:", stripeKey?.substring(0, 10));
+    throw new Error("Invalid Stripe publishable key");
   }
 } catch (error) {
   console.error("Error initializing Stripe:", error);
