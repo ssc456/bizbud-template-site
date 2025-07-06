@@ -1,6 +1,19 @@
 import { Redis } from '@upstash/redis';
 import { addMinutes, parse, format, parseISO, isAfter } from 'date-fns';
-import { sendEmail } from './utils/email';
+
+// Try to import email module, but don't fail if it's not available
+let sendEmail;
+try {
+  const emailModule = await import('./utils/email.js');
+  sendEmail = emailModule.sendEmail;
+} catch (error) {
+  console.warn('[Appointments API] Email module not available, emails will be logged only');
+  // Provide a fallback implementation that just logs
+  sendEmail = async ({ to, subject, text }) => {
+    console.log(`[Email Log] To: ${to}, Subject: ${subject}, Body: ${text}`);
+    return { success: true, mock: true };
+  };
+}
 
 // Initialize Redis client
 const redis = (() => {
@@ -333,7 +346,7 @@ async function bookAppointment(req, res, siteId) {
     
     // 1. Send email to customer
     try {
-      await sendEmail({
+      const emailResult = await sendEmail({
         to: customer.email,
         subject: `Appointment Request Received - ${businessName || siteId}`,
         text: `Thank you for your appointment request on ${date} at ${time}. We will confirm your request shortly.`,
@@ -346,8 +359,13 @@ async function bookAppointment(req, res, siteId) {
           <p>We will review your request and send you a confirmation email shortly.</p>
         `
       });
+      
+      if (!emailResult.success) {
+        console.warn(`[Appointments API] Customer confirmation email wasn't sent: ${emailResult.error}`);
+      }
     } catch (emailError) {
-      console.error('Failed to send customer confirmation email:', emailError);
+      console.error('[Appointments API] Failed to send customer confirmation email:', emailError);
+      // Continue anyway - don't break appointment booking just because email failed
     }
     
     // 2. Send notification to site owner
@@ -630,7 +648,7 @@ async function confirmAppointment(req, res, siteId) {
     // Send confirmation email
     try {
       const appointment = bookings[appointmentIndex];
-      await sendEmail({
+      const emailResult = await sendEmail({
         to: appointment.customer.email,
         subject: `Appointment Confirmed - ${siteId}`,
         text: `Your appointment on ${appointment.date} at ${appointment.time} has been confirmed.`,
@@ -642,8 +660,12 @@ async function confirmAppointment(req, res, siteId) {
           <p>We look forward to seeing you!</p>
         `
       });
+      
+      if (!emailResult.success) {
+        console.warn(`[Appointments API] Confirmation email wasn't sent: ${emailResult.error}`);
+      }
     } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError);
+      console.error('[Appointments API] Failed to send confirmation email:', emailError);
       // Continue anyway - don't fail the confirmation just because email failed
     }
     

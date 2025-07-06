@@ -1,27 +1,48 @@
-import { Resend } from 'resend';
+/**
+ * Email utility for appointment notifications
+ * Uses Resend API credentials that are set during site creation
+ */
 
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend API client if credentials are available
+let resendClient = null;
+try {
+  if (process.env.RESEND_API_KEY) {
+    // Use dynamic import to avoid build-time dependency
+    const { Resend } = await import('resend');
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+} catch (error) {
+  console.warn('[Email] Failed to initialize Resend client:', error.message);
+}
 
 /**
- * Send an email using Resend
- * @param {Object} options Email options
- * @param {string} options.to Recipient email
- * @param {string} options.subject Email subject
- * @param {string} options.text Plain text content
- * @param {string} options.html HTML content
- * @returns {Promise} The result of the email send operation
+ * Send an email using Resend API
+ * Falls back to logging if Resend is not configured
  */
 export async function sendEmail({ to, subject, text, html }) {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY not configured, skipping email send');
-    return;
-  }
-  
   try {
-    const fromEmail = process.env.EMAIL_FROM || 'notifications@yourdomain.com';
+    // Check if we're in development and log the email content
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📧 [Email Preview]');
+      console.log(`To: ${to}`);
+      console.log(`Subject: ${subject}`);
+      console.log(`Body: ${text}`);
+    }
     
-    const result = await resend.emails.send({
+    // If Resend client is not available, just log and return
+    if (!resendClient) {
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('[Email] Warning: Email not sent - Resend API key not configured');
+      }
+      return { success: false, error: 'Email service not configured' };
+    }
+    
+    // Get from address from environment or use a fallback
+    const siteId = process.env.VITE_SITE_ID || '';
+    const fromEmail = process.env.EMAIL_FROM || `${siteId}@entrynets.com`;
+    
+    // Send the email using Resend
+    const { data, error } = await resendClient.emails.send({
       from: fromEmail,
       to,
       subject,
@@ -29,10 +50,14 @@ export async function sendEmail({ to, subject, text, html }) {
       html
     });
     
-    console.log(`Email sent to ${to}:`, result);
-    return result;
+    if (error) {
+      console.error('[Email] Error sending email:', error);
+      return { success: false, error };
+    }
+    
+    return { success: true, data };
   } catch (error) {
-    console.error('Error sending email:', error);
-    throw error;
+    console.error('[Email] Unexpected error sending email:', error);
+    return { success: false, error: error.message };
   }
 }
