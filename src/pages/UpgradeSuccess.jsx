@@ -17,7 +17,7 @@ export default function UpgradeSuccess() {
   }, [searchParams]);
   
   return (
-    <Layout>
+    <Layout paddingTop>
       <div className="py-16 px-4">
         <div className="max-w-lg mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
           {status === 'checking' && (

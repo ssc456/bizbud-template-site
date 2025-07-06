@@ -13,6 +13,8 @@ import BookAppointment from './pages/BookAppointment'; // Import the new compone
 import AppointmentsAdmin from './admin/AppointmentsAdmin'; // Import the admin appointments component
 import PremiumOverlay from './components/PremiumOverlay';
 import UpgradePage from './pages/UpgradePage'; // Import the upgrade page
+import UpgradeSuccess from './pages/UpgradeSuccess'; // Import the upgrade success page
+import UpgradeCancel from './pages/UpgradeCancel'; // Import the upgrade cancel page
 
 
 function App() {
@@ -236,6 +238,8 @@ function App() {
         } />
         <Route path="/book-appointment" element={<BookAppointment />} /> {/* Add the new route here */}
         <Route path="/upgrade" element={<UpgradePage />} /> {/* Add the upgrade route here */}
+        <Route path="/upgrade-success" element={<UpgradeSuccess />} /> {/* Add the upgrade success route here */}
+        <Route path="/upgrade-cancel" element={<UpgradeCancel />} /> {/* Add the upgrade cancel route here */}
       </Routes>
     </BrowserRouter>
   )
