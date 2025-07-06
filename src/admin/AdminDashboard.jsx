@@ -19,6 +19,7 @@ import SocialEditor from './editors/SocialEditor';
 import ConfigEditor from './editors/ConfigEditor';
 import MediaLibrary from './editors/MediaLibrary';
 import AppointmentsManager from './editors/AppointmentsManager';
+import InvoiceEditor from './editors/InvoiceEditor';
 
 import PreviewFrame from './PreviewFrame';
 import DebugConsole from './DebugConsole';
@@ -160,6 +161,16 @@ export default function AdminDashboard() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       )
+    },
+    { 
+      id: 'invoicing', 
+      label: 'Invoicing', 
+      path: '/admin/dashboard/invoicing',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ) 
     }
   ];
 
@@ -304,6 +315,7 @@ export default function AdminDashboard() {
                 <Route path="config" element={<ConfigEditor clientData={clientData} setClientData={setClientData} />} />
                 <Route path="media" element={<MediaLibrary />} />
                 <Route path="appointments" element={<AppointmentsManager />} />
+                <Route path="invoicing" element={<InvoiceEditor />} />
               </Routes>
             )}
           </div>
