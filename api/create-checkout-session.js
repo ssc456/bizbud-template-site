@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { siteId, paymentType } = req.body;
+    const { siteId, paymentType, interval = 'monthly' } = req.body;  // Add interval parameter
     
     if (!siteId) {
       return res.status(400).json({ error: 'Site ID is required' });
@@ -33,15 +33,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'This site is already premium' });
     }
     
-    // Both prices are subscription products in Stripe
-    const priceId = paymentType === 'subscription' 
-      ? process.env.STRIPE_MONTHLY_PRICE_ID 
-      : process.env.STRIPE_ONE_TIME_PRICE_ID;
+    // Choose price based on interval, not just payment type
+    let priceId;
+    if (paymentType === 'subscription') {
+      // Choose between monthly or annual subscription price
+      priceId = interval === 'yearly' 
+        ? process.env.STRIPE_YEARLY_PRICE_ID 
+        : process.env.STRIPE_MONTHLY_PRICE_ID;
+    } else {
+      // One-time payment (not currently used)
+      priceId = process.env.STRIPE_ONE_TIME_PRICE_ID;
+    }
     
-    // Set mode based on payment type
-    const mode = paymentType === 'subscription' ? 'subscription' : 'payment';
-
-    // Create a checkout session
+    // Always use subscription mode for both monthly and yearly plans
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -50,18 +54,19 @@ export default async function handler(req, res) {
           quantity: 1,
         },
       ],
-      mode: mode,  // Use the appropriate mode
+      mode: 'subscription',
       success_url: `https://${siteId}.vercel.app/upgrade-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://${siteId}.vercel.app/upgrade-cancel`,
       metadata: {
         siteId,
         paymentType,
+        interval
       }
     });
     
     return res.status(200).json({ sessionId: session.id });
   } catch (error) {
     console.error('Stripe checkout error:', error);
-    return res.status(500).json({ error: 'Failed to create checkout session' });
+    return res.status(500).json({ error: error.message });
   }
 }
