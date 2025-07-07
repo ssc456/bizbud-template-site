@@ -1,8 +1,20 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, Mail, MapPin, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 function ContactSection({ title, description, email, phone, address, primaryColor, clientData }) {
+  // Add form state
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Colors logic as before
   const colorClasses = {
     pink: {
       accent: 'text-pink-500',
@@ -29,6 +41,66 @@ function ContactSection({ title, description, email, phone, address, primaryColo
       light: 'bg-green-50',
     }
   }[primaryColor] || colorClasses.blue;
+  
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!formData.name.trim()) {
+      toast.error('Please enter your name');
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes('@')) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    if (!formData.message.trim()) {
+      toast.error('Please enter your message');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Get the site ID from the URL (e.g., example.entrynets.com -> example)
+      const hostname = window.location.hostname;
+      let siteId = hostname.split('.')[0];
+      
+      // If on localhost, use a default or from env
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        siteId = import.meta.env.VITE_SITE_ID || 'demo';
+      }
+      
+      const response = await fetch(`/api/contact?siteId=${siteId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message');
+      }
+      
+      // Success
+      toast.success('Message sent successfully!');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      
+    } catch (error) {
+      toast.error(error.message || 'Failed to send message. Please try again.');
+      console.error('Contact form error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <section id="contact" className="py-20 bg-gray-50">
@@ -102,7 +174,7 @@ function ContactSection({ title, description, email, phone, address, primaryColo
             >
               <div className="bg-white rounded-xl shadow-lg p-8">
                 <h3 className="text-2xl font-semibold mb-6">Send us a message</h3>
-                <form>
+                <form onSubmit={handleSubmit}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -111,6 +183,9 @@ function ContactSection({ title, description, email, phone, address, primaryColo
                       <input
                         type="text"
                         id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Your name"
                       />
@@ -122,6 +197,9 @@ function ContactSection({ title, description, email, phone, address, primaryColo
                       <input
                         type="email"
                         id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Your email"
                       />
@@ -134,6 +212,9 @@ function ContactSection({ title, description, email, phone, address, primaryColo
                     <input
                       type="text"
                       id="subject"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Subject"
                     />
@@ -144,16 +225,32 @@ function ContactSection({ title, description, email, phone, address, primaryColo
                     </label>
                     <textarea
                       id="message"
+                      name="message"
                       rows={4}
+                      value={formData.message}
+                      onChange={handleChange}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Your message"
                     />
                   </div>
                   <button
                     type="submit"
-                    className={`w-full py-3 px-4 bg-gradient-to-r ${colorClasses.gradient} text-white font-medium rounded-lg hover:opacity-90 transition-opacity`}
+                    disabled={isSubmitting}
+                    className={`w-full py-3 px-4 bg-gradient-to-r ${colorClasses.gradient} text-white font-medium rounded-lg hover:opacity-90 transition-opacity flex justify-center items-center gap-2 ${
+                      isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                    }`}
                   >
-                    Send Message
+                    {isSubmitting ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={18} />
+                        Send Message
+                      </>
+                    )}
                   </button>
                 </form>
               </div>
