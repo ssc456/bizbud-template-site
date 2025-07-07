@@ -349,6 +349,51 @@ export default function AppointmentsManager({ initialView = 'list' }) {
     );
   };
 
+  // Function to fetch appointments for a specific date
+  const fetchAppointmentsForDate = async (date) => {
+    try {
+      setIsLoading(true);
+      const appointmentsData = await fetchAppointments(date);
+      setAppointments(appointmentsData);
+    } catch (error) {
+      toast.error('Failed to load appointments for the selected date');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to fetch appointments for a date range
+  const fetchAppointmentsForRange = async (rangeType) => {
+    try {
+      setIsLoading(true);
+      let startDate = new Date();
+      let endDate = new Date();
+      
+      // Set appropriate date range based on type
+      if (rangeType === 'thisWeek') {
+        endDate.setDate(startDate.getDate() + 7);
+      } else if (rangeType === 'thisMonth') {
+        endDate.setMonth(startDate.getMonth() + 1);
+      } else if (rangeType === 'custom') {
+        startDate = new Date(customDateRange.start);
+        endDate = new Date(customDateRange.end);
+      }
+      
+      // Fetch all appointments and filter client-side
+      const allAppointments = await fetchAllAppointments();
+      const filteredAppointments = allAppointments.filter(appointment => {
+        const appointmentDate = new Date(appointment.date);
+        return appointmentDate >= startDate && appointmentDate <= endDate;
+      });
+      
+      setAppointments(filteredAppointments);
+    } catch (error) {
+      toast.error('Failed to load appointments for the selected date range');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Navigation */}
@@ -472,9 +517,6 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           onCancel={handleCancelAppointment}
         />
       )}
-
-      {/* Date Filters - New Section */}
-      {view === 'calendar' && renderDateFilters()}
     </div>
   );
 }
