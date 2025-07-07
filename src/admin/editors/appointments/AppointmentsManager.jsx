@@ -238,7 +238,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
         
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <button 
-            onClick={async () => {
+            onClick={() => {
               setDateFilter('today');
               setSelectedDate(new Date());
               fetchAppointmentsForDate(new Date());
@@ -259,7 +259,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           </button>
           
           <button 
-            onClick={async () => {
+            onClick={() => {
               setDateFilter('tomorrow');
               const tomorrow = new Date();
               tomorrow.setDate(tomorrow.getDate() + 1);
@@ -458,12 +458,14 @@ export default function AppointmentsManager({ initialView = 'list' }) {
             setSelectedDate(new Date());
             setDateFilter('today');
             fetchAppointmentsForDate(new Date());
-            handleViewChange('calendar');
+            // View change will happen after state updates
+            setTimeout(() => handleViewChange('calendar'), 0);
           }}
           onViewCalendarClick={() => {
             setDateFilter('thisWeek');
             fetchAppointmentsForRange('thisWeek');
-            handleViewChange('calendar');
+            // View change will happen after state updates
+            setTimeout(() => handleViewChange('calendar'), 0);
           }}
         />
       )}
