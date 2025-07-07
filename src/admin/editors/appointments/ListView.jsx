@@ -70,36 +70,45 @@ export default function ListView({
       <h3 className="font-medium text-lg mb-4">Appointment List</h3>
       
       <div className="mb-6">
-        <div className="flex border-b border-gray-200">
-          <button
-            className={`py-2 px-4 ${listTab === 'pending' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setListTab('pending')}
-          >
-            Pending
-            {appointments.filter(a => a.status === 'pending').length > 0 && (
-              <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                {appointments.filter(a => a.status === 'pending').length}
-              </span>
-            )}
-          </button>
-          <button
-            className={`py-2 px-4 ${listTab === 'confirmed' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setListTab('confirmed')}
-          >
-            Confirmed
-          </button>
-          <button
-            className={`py-2 px-4 ${listTab === 'cancelled' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setListTab('cancelled')}
-          >
-            Cancelled
-          </button>
-          <button
-            className={`py-2 px-4 ${listTab === 'all' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setListTab('all')}
-          >
-            All Appointments
-          </button>
+        {/* Scrollable tabs container */}
+        <div className="relative border-b border-gray-200">
+          <div className="overflow-x-auto pb-px no-scrollbar">
+            <div className="flex whitespace-nowrap min-w-max">
+              <button
+                className={`py-2 px-4 ${listTab === 'pending' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setListTab('pending')}
+              >
+                Pending
+                {appointments.filter(a => a.status === 'pending').length > 0 && (
+                  <span className="ml-1 bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {appointments.filter(a => a.status === 'pending').length}
+                  </span>
+                )}
+              </button>
+              <button
+                className={`py-2 px-4 ${listTab === 'confirmed' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setListTab('confirmed')}
+              >
+                Confirmed
+              </button>
+              <button
+                className={`py-2 px-4 ${listTab === 'cancelled' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setListTab('cancelled')}
+              >
+                Cancelled
+              </button>
+              <button
+                className={`py-2 px-4 ${listTab === 'all' ? 'border-b-2 border-blue-500 font-medium text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setListTab('all')}
+              >
+                All Appointments
+              </button>
+            </div>
+          </div>
+          
+          {/* Fade indicators for scroll */}
+          <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+          <div className="absolute top-0 left-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
         </div>
       </div>
       
@@ -333,3 +342,4 @@ export default function ListView({
     </div>
   );
 }
+

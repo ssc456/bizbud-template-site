@@ -235,24 +235,50 @@ export default function AdminDashboard() {
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       <ToastContainer position="top-right" />
       
-      {/* Sidebar */}
-      <div className="w-64 bg-gray-800 text-white flex flex-col">
+      {/* Mobile Header with Menu Toggle */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white shadow-sm border-b border-gray-200 py-2 px-4 flex items-center">
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h2 className="text-lg font-medium ml-2">{navItems.find(item => item.id === activeSection)?.label || 'Dashboard'}</h2>
+      </div>
+      
+      {/* Mobile Sidebar Backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-gray-600 bg-opacity-75 z-30 lg:hidden" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar - Hidden on mobile by default */}
+      <div 
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-800 text-white flex flex-col transform transition-transform lg:translate-x-0 lg:static lg:inset-auto ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="p-4 border-b border-gray-700">
           <h1 className="text-xl font-bold">Admin Panel</h1>
         </div>
         
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto py-2 mt-12 lg:mt-0"> {/* Add top margin on mobile for the header */}
           <nav className="space-y-1 px-2">
             {navItems.map(item => (
               item.path ? (
                 <Link
                   key={item.id}
                   to={item.path}
-                  className={`flex items-center px-4 py-2 text-sm rounded-md ${
+                  className={`flex items-center px-4 py-2 text-sm rounded-md $
                     activeSection === item.id
-                      ? 'bg-gray-900 text-white'
-                      : 'text-gray-300 hover:bg-gray-700'
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-300 hover:bg-gray-700'
                   }`}
+                  onClick={() => setSidebarOpen(false)} 
                 >
                   {item.icon}
                   {item.label}
@@ -260,11 +286,14 @@ export default function AdminDashboard() {
               ) : (
                 <button
                   key={item.id}
-                  onClick={item.onClick}
-                  className={`flex items-center px-4 py-2 text-sm rounded-md w-full text-left ${
+                  onClick={() => {
+                    item.onClick();
+                    setSidebarOpen(false); // Close sidebar when navigating
+                  }}
+                  className={`flex items-center px-4 py-2 text-sm rounded-md w-full text-left $
                     activeSection === item.id
-                      ? 'bg-gray-900 text-white'
-                      : 'text-gray-300 hover:bg-gray-700'
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-300 hover:bg-gray-700'
                   }`}
                 >
                   {item.icon}
@@ -292,10 +321,10 @@ export default function AdminDashboard() {
         </div>
       </div>
       
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 py-4 px-6 flex justify-between items-center">
+      {/* Main Content - Adjusted to respect mobile header */}
+      <div className="flex-1 flex flex-col overflow-hidden pt-12 lg:pt-0"> {/* Add padding top for mobile header */}
+        {/* Desktop Top Bar - Hidden on Mobile */}
+        <header className="hidden lg:flex bg-white shadow-sm border-b border-gray-200 py-4 px-6 justify-between items-center">
           <h2 className="text-xl font-semibold">{navItems.find(item => item.id === activeSection)?.label || 'Dashboard'}</h2>
           
           <div className="flex items-center gap-3">
@@ -312,6 +341,19 @@ export default function AdminDashboard() {
             </button>
           </div>
         </header>
+        
+        {/* Save Button for Mobile - Fixed at bottom */}
+        {hasChanges() && (
+          <div className="fixed bottom-4 left-0 right-0 flex justify-center z-20 lg:hidden">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-6 py-2 bg-blue-600 text-white rounded-full shadow-lg"
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        )}
         
         {/* Content Area */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
