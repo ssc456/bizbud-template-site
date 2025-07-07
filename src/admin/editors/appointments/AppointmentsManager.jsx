@@ -241,8 +241,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
             onClick={async () => {
               setDateFilter('today');
               setSelectedDate(new Date());
-              await fetchAppointmentsForDate(new Date());
-              handleViewChange('calendar');
+              fetchAppointmentsForDate(new Date());
             }}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'today' 
@@ -265,8 +264,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
               const tomorrow = new Date();
               tomorrow.setDate(tomorrow.getDate() + 1);
               setSelectedDate(tomorrow);
-              await fetchAppointmentsForDate(tomorrow);
-              handleViewChange('calendar');
+              fetchAppointmentsForDate(tomorrow);
             }}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'tomorrow' 
