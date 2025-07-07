@@ -410,21 +410,18 @@ export default function AppointmentsManager({ initialView = 'list' }) {
       switch (filterType) {
         case 'today': {
           const todayStr = format(new Date(), 'yyyy-MM-dd');
-          console.log(`Filtering for today: ${todayStr}`);
           filtered = allAppointments.filter(a => a.date === todayStr);
           break;
         }
         case 'tomorrow': {
           const tomorrow = addDays(new Date(), 1);
           const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
-          console.log(`Filtering for tomorrow: ${tomorrowStr}`);
           filtered = allAppointments.filter(a => a.date === tomorrowStr);
           break;
         }
         case 'thisWeek': {
           const today = new Date();
           const nextWeek = addDays(today, 7);
-          console.log(`Filtering for week: ${format(today, 'yyyy-MM-dd')} to ${format(nextWeek, 'yyyy-MM-dd')}`);
           filtered = allAppointments.filter(a => {
             const apptDate = new Date(a.date);
             return apptDate >= today && apptDate <= nextWeek;
@@ -435,7 +432,6 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           const today = new Date();
           const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
           const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          console.log(`Filtering for month: ${format(firstDay, 'yyyy-MM-dd')} to ${format(lastDay, 'yyyy-MM-dd')}`);
           filtered = allAppointments.filter(a => {
             const apptDate = new Date(a.date);
             return apptDate >= firstDay && apptDate <= lastDay;
@@ -444,7 +440,6 @@ export default function AppointmentsManager({ initialView = 'list' }) {
         }
         case 'specific': {
           const dateStr = format(date, 'yyyy-MM-dd');
-          console.log(`Filtering for specific date: ${dateStr}`);
           filtered = allAppointments.filter(a => a.date === dateStr);
           break;
         }
@@ -454,7 +449,6 @@ export default function AppointmentsManager({ initialView = 'list' }) {
       
       // IMPORTANT: Change the order here
       handleViewChange('calendar'); // Set view FIRST
-      console.log(`Found ${filtered.length} appointments for ${filterType}`);
       setAppointments(filtered);
       setSelectedDate(date); // Set date LAST so it doesn't trigger unwanted effects
       
@@ -538,7 +532,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="font-medium text-lg mb-4">
               {dateFilter === 'specific' 
-                ? `Appointments for ${format(selectedDate, 'MMMM d, yyyy')}` 
+                ? `Appointments for ${format(selectedDate, 'dd-MMM-yyyy')}` 
                 : dateFilter === 'today'
                 ? 'Today\'s Appointments'
                 : dateFilter === 'tomorrow'
@@ -547,16 +541,6 @@ export default function AppointmentsManager({ initialView = 'list' }) {
                 ? 'This Week\'s Appointments'
                 : 'This Month\'s Appointments'}
             </h3>
-            
-            {/* Debug info */}
-            <div className="text-xs text-gray-500 mb-4">
-              Active filter: {dateFilter}
-              {dateFilter === 'today' && ` (${format(new Date(), 'yyyy-MM-dd')})`}
-              {dateFilter === 'tomorrow' && ` (${format(addDays(new Date(), 1), 'yyyy-MM-dd')})`}
-              {dateFilter === 'specific' && ` (${format(selectedDate, 'yyyy-MM-dd')})`}
-              <br />
-              Showing {appointments.length} appointment(s)
-            </div>
             
             {/* Rest of appointment display logic */}
             {isLoading ? (
@@ -615,22 +599,13 @@ export default function AppointmentsManager({ initialView = 'list' }) {
                           </p>
                           <p className="text-sm text-gray-600 mb-1">
                             <span className="font-medium">Date:</span> {
-                              // First, parse the date consistently
                               (() => {
                                 try {
-                                  // Log the raw date for debugging
-                                  console.log("Raw date value:", appointment.date);
-                                  
-                                  // Try to parse the date and format it consistently
+                                  // Use UK date format (day-month-year)
                                   const dateObj = new Date(appointment.date);
-                                  return dateObj.toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit'
-                                  });
+                                  return format(dateObj, 'dd-MMM-yyyy'); // e.g., "07-Jul-2025"
                                 } catch (e) {
-                                  console.error("Date parsing error:", e);
-                                  return appointment.date; // Fall back to raw value
+                                  return appointment.date;
                                 }
                               })()
                             }</p>
