@@ -242,6 +242,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
               setDateFilter('today');
               setSelectedDate(new Date());
               fetchAppointmentsForDate(new Date());
+              setTimeout(() => handleViewChange('calendar'), 0); // Keep view on calendar
             }}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'today' 
@@ -265,6 +266,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
               tomorrow.setDate(tomorrow.getDate() + 1);
               setSelectedDate(tomorrow);
               fetchAppointmentsForDate(tomorrow);
+              setTimeout(() => handleViewChange('calendar'), 0); // Keep view on calendar
             }}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'tomorrow' 
@@ -333,6 +335,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
                 setSelectedDate(date);
                 setDateFilter('specific');
                 fetchAppointmentsForDate(date);
+                setTimeout(() => handleViewChange('calendar'), 0); // Keep view on calendar
               }}
               className="p-2 border border-gray-300 rounded w-full"
             />
