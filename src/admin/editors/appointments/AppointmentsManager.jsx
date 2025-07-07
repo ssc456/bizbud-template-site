@@ -120,7 +120,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
     };
     
     loadViewData();
-  }, [initialView, selectedDate]);
+  }, [initialView]); // REMOVE selectedDate from dependencies
 
   // Handle date change in calendar
   const handleDateChange = async (date, e) => {
@@ -452,11 +452,11 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           filtered = allAppointments;
       }
       
-      // Set appointments and change view in one block
+      // IMPORTANT: Change the order here
+      handleViewChange('calendar'); // Set view FIRST
       console.log(`Found ${filtered.length} appointments for ${filterType}`);
       setAppointments(filtered);
-      setSelectedDate(date);
-      handleViewChange('calendar');
+      setSelectedDate(date); // Set date LAST so it doesn't trigger unwanted effects
       
       return filtered;
     } catch (error) {
