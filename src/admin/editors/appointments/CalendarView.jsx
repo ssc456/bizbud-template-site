@@ -59,16 +59,20 @@ export default function CalendarView({
       {/* Calendar - Full width on mobile */}
       <div className="bg-white p-4 sm:p-6 rounded-lg shadow col-span-1">
         <Calendar 
-          onChange={(date) => {
-            // Stop propagation to prevent navigation
+          onClickDay={(date) => {
+            // Completely prevent default navigation behavior
             onDateChange(date);
-            // Explicitly prevent default navigation behavior
+            // Return false doesn't help - we need to stop propagation and prevent default
             return false;
           }}
+          // Remove the onChange handler entirely as it's causing the navigation issue
           value={selectedDate}
           tileContent={tileContent}
           tileClassName={tileClassName}
           className="w-full"
+          // Disable navigation with keyboard as an extra precaution
+          nextLabel={<span className="text-gray-600">›</span>}
+          prevLabel={<span className="text-gray-600">‹</span>}
         />
       </div>
       

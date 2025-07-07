@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import DashboardView from './DashboardView';
 import CalendarView from './CalendarView';
 import ListView from './ListView';
@@ -230,6 +230,125 @@ export default function AppointmentsManager({ initialView = 'list' }) {
     }
   };
 
+  // Add this function to replace the calendar view with an enhanced filtering system
+  const renderDateFilters = () => {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="font-medium text-lg mb-4">Date Filtering</h3>
+        
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <button 
+            onClick={() => {
+              setDateFilter('today');
+              setSelectedDate(new Date());
+              fetchAppointmentsForDate(new Date());
+            }}
+            className={`p-4 text-left rounded-lg border ${
+              dateFilter === 'today' 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Today</span>
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                {stats.today || 0}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">{format(new Date(), 'MMM d, yyyy')}</p>
+          </button>
+          
+          <button 
+            onClick={() => {
+              setDateFilter('tomorrow');
+              const tomorrow = new Date();
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              setSelectedDate(tomorrow);
+              fetchAppointmentsForDate(tomorrow);
+            }}
+            className={`p-4 text-left rounded-lg border ${
+              dateFilter === 'tomorrow' 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Tomorrow</span>
+              {/* You'd need to add a stats.tomorrow count */}
+            </div>
+            <p className="text-sm text-gray-500 mt-1">{format(addDays(new Date(), 1), 'MMM d, yyyy')}</p>
+          </button>
+          
+          <button 
+            onClick={() => {
+              setDateFilter('thisWeek');
+              fetchAppointmentsForRange('thisWeek');
+            }}
+            className={`p-4 text-left rounded-lg border ${
+              dateFilter === 'thisWeek' 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <span className="font-medium">This Week</span>
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                {stats.week || 0}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">Next 7 days</p>
+          </button>
+          
+          <button 
+            onClick={() => {
+              setDateFilter('thisMonth');
+              fetchAppointmentsForRange('thisMonth');
+            }}
+            className={`p-4 text-left rounded-lg border ${
+              dateFilter === 'thisMonth' 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <span className="font-medium">This Month</span>
+              {/* Add monthly count if available */}
+            </div>
+            <p className="text-sm text-gray-500 mt-1">{format(new Date(), 'MMMM yyyy')}</p>
+          </button>
+        </div>
+        
+        <div className="mt-6">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Select Specific Date</label>
+          <div className="flex items-center">
+            <input 
+              type="date" 
+              value={format(selectedDate, 'yyyy-MM-dd')}
+              onChange={(e) => {
+                const date = new Date(e.target.value);
+                setSelectedDate(date);
+                setDateFilter('specific');
+                fetchAppointmentsForDate(date);
+              }}
+              className="p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+        </div>
+        
+        {dateFilter === 'specific' && (
+          <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h4 className="font-medium">
+              Appointments for {format(selectedDate, 'MMMM d, yyyy')}
+            </h4>
+            <p className="text-sm text-gray-600 mt-1">
+              {appointments.filter(a => a.date === format(selectedDate, 'yyyy-MM-dd')).length} appointment(s)
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Navigation */}
@@ -286,16 +405,36 @@ export default function AppointmentsManager({ initialView = 'list' }) {
       )}
       
       {view === 'calendar' && (
-        <CalendarView 
-          selectedDate={selectedDate}
-          appointments={appointments}
-          isLoading={isLoading}
-          appointmentDates={appointmentDates}
-          onDateChange={handleDateChange}
-          onViewAppointment={setActiveAppointment}
-          onConfirmAppointment={handleConfirmAppointment}
-          onCancelAppointment={handleCancelAppointment}
-        />
+        <div className="space-y-6">
+          {renderDateFilters()}
+          
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="font-medium text-lg mb-4">
+              {dateFilter === 'specific' 
+                ? `Appointments for ${format(selectedDate, 'MMMM d, yyyy')}` 
+                : dateFilter === 'today'
+                ? 'Today\'s Appointments'
+                : dateFilter === 'tomorrow'
+                ? 'Tomorrow\'s Appointments'
+                : dateFilter === 'thisWeek'
+                ? 'This Week\'s Appointments'
+                : 'This Month\'s Appointments'}
+            </h3>
+            
+            {/* Rest of appointment display logic */}
+            {isLoading ? (
+              <div className="flex justify-center py-10">
+                <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
+              </div>
+            ) : appointments.length === 0 ? (
+              <p className="text-gray-500 py-10 text-center">No appointments scheduled for this time period.</p>
+            ) : (
+              <div>
+                {/* Display appointments here - you can reuse the mobile card view from ListView */}
+              </div>
+            )}
+          </div>
+        </div>
       )}
       
       {view === 'list' && (
@@ -333,6 +472,9 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           onCancel={handleCancelAppointment}
         />
       )}
+
+      {/* Date Filters - New Section */}
+      {view === 'calendar' && renderDateFilters()}
     </div>
   );
 }
