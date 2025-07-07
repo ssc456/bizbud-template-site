@@ -239,10 +239,23 @@ export default function AppointmentsManager({ initialView = 'list' }) {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <button 
             onClick={() => {
+              const today = new Date();
               setDateFilter('today');
-              setSelectedDate(new Date());
-              fetchAppointmentsForDate(new Date());
-              setTimeout(() => handleViewChange('calendar'), 0); // Keep view on calendar
+              setSelectedDate(today);
+              
+              // Use the improved filtering logic
+              const todayStr = format(today, 'yyyy-MM-dd');
+              fetchAllAppointments().then(allAppts => {
+                const todayAppointments = allAppts.filter(appt => appt.date === todayStr);
+                setAppointments(todayAppointments);
+                setIsLoading(false);
+                handleViewChange('calendar');
+              }).catch(() => {
+                toast.error('Failed to load today\'s appointments');
+                setIsLoading(false);
+              });
+              
+              setIsLoading(true);
             }}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'today' 
@@ -360,8 +373,17 @@ export default function AppointmentsManager({ initialView = 'list' }) {
   const fetchAppointmentsForDate = async (date) => {
     try {
       setIsLoading(true);
-      const appointmentsData = await fetchAppointments(date);
-      setAppointments(appointmentsData);
+      
+      // First get all appointments
+      const allAppointments = await fetchAllAppointments();
+      
+      // Then manually filter for the exact date
+      const selectedDateStr = format(date, 'yyyy-MM-dd');
+      const filteredAppointments = allAppointments.filter(appointment => 
+        appointment.date === selectedDateStr
+      );
+      
+      setAppointments(filteredAppointments);
     } catch (error) {
       toast.error('Failed to load appointments for the selected date');
     } finally {
@@ -490,6 +512,16 @@ export default function AppointmentsManager({ initialView = 'list' }) {
                 : 'This Month\'s Appointments'}
             </h3>
             
+            {/* Debug info */}
+            <div className="text-xs text-gray-500 mb-4">
+              Active filter: {dateFilter}
+              {dateFilter === 'today' && ` (${format(new Date(), 'yyyy-MM-dd')})`}
+              {dateFilter === 'tomorrow' && ` (${format(addDays(new Date(), 1), 'yyyy-MM-dd')})`}
+              {dateFilter === 'specific' && ` (${format(selectedDate, 'yyyy-MM-dd')})`}
+              <br />
+              Showing {appointments.length} appointment(s)
+            </div>
+            
             {/* Rest of appointment display logic */}
             {isLoading ? (
               <div className="flex justify-center py-10">
@@ -501,14 +533,24 @@ export default function AppointmentsManager({ initialView = 'list' }) {
               <div className="space-y-4">
                 {appointments
                   .sort((a, b) => {
-                    // First sort by date
-                    const dateCompare = new Date(a.date) - new Date(b.date);
-                    if (dateCompare !== 0) return dateCompare;
+                    // First sort by date string (yyyy-MM-dd format)
+                    const dateA = a.date;
+                    const dateB = b.date;
+                    if (dateA !== dateB) {
+                      return dateA.localeCompare(dateB);
+                    }
                     
-                    // If same date, sort by time
-                    const timeA = a.time.replace(/[^\d:]/g, '');
-                    const timeB = b.time.replace(/[^\d:]/g, '');
-                    return timeA.localeCompare(timeB);
+                    // If same date, sort by time in 24-hour format for proper ordering
+                    // Convert time like "2:30 PM" to comparable format
+                    const getTimeMinutes = (timeStr) => {
+                      const [time, period] = timeStr.split(' ');
+                      let [hours, minutes] = time.split(':').map(Number);
+                      if (period === 'PM' && hours !== 12) hours += 12;
+                      if (period === 'AM' && hours === 12) hours = 0;
+                      return hours * 60 + minutes;
+                    };
+                    
+                    return getTimeMinutes(a.time) - getTimeMinutes(b.time);
                   })
                   .map(appointment => (
                     <div 
@@ -534,6 +576,9 @@ export default function AppointmentsManager({ initialView = 'list' }) {
                           
                           <p className="text-sm text-gray-600 mb-1">
                             <span className="font-medium">Time:</span> {appointment.time} ({appointment.duration} min)
+                          </p>
+                          <p className="text-sm text-gray-600 mb-1">
+                            <span className="font-medium">Date:</span> {new Date(appointment.date).toLocaleDateString()}
                           </p>
                           <p className="text-sm text-gray-600 mb-1">
                             <span className="font-medium">Service:</span> {appointment.service || 'General Appointment'}
