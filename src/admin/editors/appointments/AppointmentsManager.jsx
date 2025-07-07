@@ -443,9 +443,15 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           onViewAllClick={() => handleViewChange('list')}
           onViewTodayClick={() => {
             setSelectedDate(new Date());
+            setDateFilter('today');
+            fetchAppointmentsForDate(new Date());
             handleViewChange('calendar');
           }}
-          onViewCalendarClick={() => handleViewChange('calendar')}
+          onViewCalendarClick={() => {
+            setDateFilter('thisWeek');
+            fetchAppointmentsForRange('thisWeek');
+            handleViewChange('calendar');
+          }}
         />
       )}
       
@@ -474,8 +480,78 @@ export default function AppointmentsManager({ initialView = 'list' }) {
             ) : appointments.length === 0 ? (
               <p className="text-gray-500 py-10 text-center">No appointments scheduled for this time period.</p>
             ) : (
-              <div>
-                {/* Display appointments here - you can reuse the mobile card view from ListView */}
+              <div className="space-y-4">
+                {appointments
+                  .sort((a, b) => {
+                    // First sort by date
+                    const dateCompare = new Date(a.date) - new Date(b.date);
+                    if (dateCompare !== 0) return dateCompare;
+                    
+                    // If same date, sort by time
+                    const timeA = a.time.replace(/[^\d:]/g, '');
+                    const timeB = b.time.replace(/[^\d:]/g, '');
+                    return timeA.localeCompare(timeB);
+                  })
+                  .map(appointment => (
+                    <div 
+                      key={appointment.id} 
+                      className={`border rounded-lg p-3 ${
+                        appointment.status === 'pending' ? 'border-yellow-300 bg-yellow-50' :
+                        appointment.status === 'confirmed' ? 'border-green-300 bg-green-50' :
+                        'border-red-300 bg-red-50'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center flex-wrap mb-1 gap-1">
+                            <h4 className="font-medium text-gray-900">{appointment.customer?.name || 'No name'}</h4>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              appointment.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
+                              appointment.status === 'confirmed' ? 'bg-green-200 text-green-800' :
+                              'bg-red-200 text-red-800'
+                            }`}>
+                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                            </span>
+                          </div>
+                          
+                          <p className="text-sm text-gray-600 mb-1">
+                            <span className="font-medium">Time:</span> {appointment.time} ({appointment.duration} min)
+                          </p>
+                          <p className="text-sm text-gray-600 mb-1">
+                            <span className="font-medium">Service:</span> {appointment.service || 'General Appointment'}
+                          </p>
+                          <p className="text-sm text-gray-600 mb-1">
+                            <span className="font-medium">Contact:</span> {appointment.customer?.email}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-200">
+                        <button 
+                          onClick={() => setActiveAppointment(appointment)}
+                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
+                        >
+                          View
+                        </button>
+                        {appointment.status === 'pending' && (
+                          <button 
+                            onClick={() => handleConfirmAppointment(appointment.id)} 
+                            className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded"
+                          >
+                            Confirm
+                          </button>
+                        )}
+                        {appointment.status !== 'cancelled' && (
+                          <button 
+                            onClick={() => handleCancelAppointment(appointment.id)}
+                            className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
               </div>
             )}
           </div>
