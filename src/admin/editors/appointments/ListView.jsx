@@ -4,7 +4,7 @@ import { parseISO, addDays, format } from 'date-fns';
 export default function ListView({
   appointments,
   isLoading,
-  listTab,
+  listTab = 'all', // Default to 'all' instead of 'pending'
   setListTab,
   searchTerm,
   setSearchTerm,

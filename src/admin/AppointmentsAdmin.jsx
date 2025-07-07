@@ -215,10 +215,12 @@ export default function AppointmentsAdmin() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-6">
           <AppointmentsManager 
-            initialView={activeSection === 'dashboard' ? 'dashboard' : 
-                        activeSection === 'pending' ? 'list' : 
-                        activeSection === 'calendar' ? 'calendar' : 
-                        activeSection === 'settings' ? 'settings' : 'dashboard'}
+            initialView={
+              activeSection === 'dashboard' ? 'dashboard' : 
+              activeSection === 'pending' ? 'pending' : 
+              activeSection === 'calendar' ? 'calendar' : 
+              activeSection === 'settings' ? 'settings' : 'list'
+            }
           />
         </div>
       </div>

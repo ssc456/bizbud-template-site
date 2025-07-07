@@ -17,7 +17,7 @@ import {
   cleanupAppointments
 } from './appointmentsAPI';
 
-export default function AppointmentsManager({ initialView = 'dashboard' }) {
+export default function AppointmentsManager({ initialView = 'list' }) {
   const [view, setView] = useState(initialView);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
@@ -26,7 +26,7 @@ export default function AppointmentsManager({ initialView = 'dashboard' }) {
   const [isLoading, setIsLoading] = useState(true);
   const [activeAppointment, setActiveAppointment] = useState(null);
   const [appointmentDates, setAppointmentDates] = useState({});
-  const [listTab, setListTab] = useState('pending');
+  const [listTab, setListTab] = useState('all'); // Start with "all" selected instead of "pending"
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('all');
   const [customDateRange, setCustomDateRange] = useState({
@@ -55,7 +55,7 @@ export default function AppointmentsManager({ initialView = 'dashboard' }) {
         if (view === 'calendar') {
           const appointmentsData = await fetchAppointments(selectedDate);
           setAppointments(appointmentsData);
-        } else {
+        } else if (view === 'list' || view === 'dashboard') {
           const allAppointments = await fetchAllAppointments();
           setAppointments(allAppointments);
         }
@@ -83,6 +83,38 @@ export default function AppointmentsManager({ initialView = 'dashboard' }) {
     return () => clearInterval(intervalId);
   }, []);
 
+  // This effect will update the view when initialView changes (from sidebar)
+  useEffect(() => {
+    setView(initialView);
+    
+    // When switching views, load appropriate data
+    const loadViewData = async () => {
+      setIsLoading(true);
+      try {
+        if (initialView === 'calendar') {
+          const appointmentsData = await fetchAppointments(selectedDate);
+          setAppointments(appointmentsData);
+        } else if (initialView === 'list') {
+          // When switching to list view, set the tab to "all" by default
+          setListTab('all');
+          const allAppointments = await fetchAllAppointments();
+          setAppointments(allAppointments);
+        } else if (initialView === 'pending') {
+          // Special case for pending filter in list view
+          setListTab('pending');
+          const allAppointments = await fetchAllAppointments();
+          setAppointments(allAppointments);
+        }
+      } catch (error) {
+        console.error('Error loading view data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadViewData();
+  }, [initialView, selectedDate]);
+
   // Handle date change in calendar
   const handleDateChange = async (date) => {
     try {
@@ -97,24 +129,9 @@ export default function AppointmentsManager({ initialView = 'dashboard' }) {
     }
   };
 
-  // Handle view change
-  const handleViewChange = async (newView) => {
+  // Update handleViewChange to be simpler
+  const handleViewChange = (newView) => {
     setView(newView);
-    setIsLoading(true);
-    
-    try {
-      if (newView === 'calendar') {
-        const appointmentsData = await fetchAppointments(selectedDate);
-        setAppointments(appointmentsData);
-      } else if (newView === 'list' || newView === 'dashboard') {
-        const allAppointments = await fetchAllAppointments();
-        setAppointments(allAppointments);
-      }
-    } catch (error) {
-      toast.error('Failed to load appointments');
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // Handle confirm appointment
@@ -245,6 +262,7 @@ export default function AppointmentsManager({ initialView = 'dashboard' }) {
             setSelectedDate(new Date());
             handleViewChange('calendar');
           }}
+          onViewCalendarClick={() => handleViewChange('calendar')}
         />
       )}
       
