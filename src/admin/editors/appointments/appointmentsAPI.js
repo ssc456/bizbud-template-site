@@ -158,6 +158,16 @@ export async function fetchDashboardStats() {
              apptDate <= nextWeek;
     });
     
+    // Calculate this month's appointments
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const monthAppointments = appointments.filter(appt => {
+      const apptDate = parseISO(appt.date);
+      return appt.status !== 'cancelled' && 
+             apptDate >= firstDayOfMonth && 
+             apptDate <= lastDayOfMonth;
+    });
+    
     // Build appointment dates object for calendar highlighting
     const dateMap = {};
     appointments.forEach(appt => {
@@ -174,8 +184,9 @@ export async function fetchDashboardStats() {
       stats: {
         pending: pendingCount,
         today: todayAppointments.length,
-        tomorrow: tomorrowAppointments.length, // Add tomorrow count
-        week: weekAppointments.length
+        tomorrow: tomorrowAppointments.length,
+        week: weekAppointments.length,
+        month: monthAppointments.length  // Add this line
       },
       dateMap
     };

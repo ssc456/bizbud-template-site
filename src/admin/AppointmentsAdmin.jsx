@@ -207,8 +207,8 @@ export default function AppointmentsAdmin() {
           </div>
         </div>
         
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:ml-64">
+        {/* Adjust main content area with proper padding */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <AppointmentsManager 
             initialView={
               activeSection === 'dashboard' ? 'dashboard' : 

@@ -238,11 +238,11 @@ export default function AppointmentsManager({ initialView = 'list' }) {
         
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <button 
-            onClick={() => {
+            onClick={async () => {
               setDateFilter('today');
               setSelectedDate(new Date());
-              fetchAppointmentsForDate(new Date());
-              handleViewChange('calendar'); // Add this line to ensure we stay in calendar view
+              await fetchAppointmentsForDate(new Date());
+              handleViewChange('calendar');
             }}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'today' 
@@ -260,13 +260,13 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           </button>
           
           <button 
-            onClick={() => {
+            onClick={async () => {
               setDateFilter('tomorrow');
               const tomorrow = new Date();
               tomorrow.setDate(tomorrow.getDate() + 1);
               setSelectedDate(tomorrow);
-              fetchAppointmentsForDate(tomorrow);
-              handleViewChange('calendar'); // Add this line to ensure we stay in calendar view
+              await fetchAppointmentsForDate(tomorrow);
+              handleViewChange('calendar');
             }}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'tomorrow' 
@@ -316,7 +316,9 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           >
             <div className="flex justify-between items-center">
               <span className="font-medium">This Month</span>
-              {/* Add monthly count if available */}
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                {stats.month || 0}
+              </span>
             </div>
             <p className="text-sm text-gray-500 mt-1">{format(new Date(), 'MMMM yyyy')}</p>
           </button>
