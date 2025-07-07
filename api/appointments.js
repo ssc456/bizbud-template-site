@@ -125,8 +125,6 @@ async function getSettings(req, res, siteId) {
   // If no settings exist, return defaults
   if (!settings) {
     const defaultSettings = {
-      duration: 30,
-      bufferTime: 5,
       workingHours: {
         monday: { start: '09:00', end: '17:00', enabled: true },
         tuesday: { start: '09:00', end: '17:00', enabled: true },
@@ -136,21 +134,20 @@ async function getSettings(req, res, siteId) {
         saturday: { start: '10:00', end: '15:00', enabled: false },
         sunday: { start: '10:00', end: '15:00', enabled: false }
       },
-      durations: [
-        { value: 15, enabled: true, label: '15 minutes' },
-        { value: 30, enabled: true, label: '30 minutes' },
-        { value: 60, enabled: true, label: '1 hour' }
-      ],
       serviceTypes: [
-        { id: 'general', name: 'General Appointment', enabled: true },
-        { id: 'consultation', name: 'Consultation', enabled: true },
-        { id: 'followup', name: 'Follow-up', enabled: true }
+        { id: 'general', name: 'General Appointment', enabled: true, duration: 30 },
+        { id: 'consultation', name: 'Consultation', enabled: true, duration: 60 },
+        { id: 'followup', name: 'Follow-up', enabled: true, duration: 15 }
       ]
     };
     return res.status(200).json(defaultSettings);
   }
   
-  return res.status(200).json(settings);
+  // Remove buffer time from existing settings
+  const cleanSettings = { ...settings };
+  delete cleanSettings.bufferTime;
+  
+  return res.status(200).json(cleanSettings);
 }
 
 async function saveSettings(req, res, siteId) {
@@ -452,7 +449,7 @@ async function bookAppointment(req, res, siteId) {
 async function listAppointments(req, res, siteId) {
   try {
     // Check if this is an admin request
-    const isAdminRequest = req.headers.referer?.includes('/admin/dashboard');
+    const isAdminRequest = req.headers.referer?.includes('/admin');
     
     if (isAdminRequest) {
       // Verify admin authentication
@@ -472,20 +469,28 @@ async function listAppointments(req, res, siteId) {
     // Get bookings
     const bookings = await redis.get(`site:${siteId}:appointments:bookings`) || [];
     
-    // Filter by date range if provided
-    const { start, end } = req.query;
+    // Filter by date if provided
+    const { date, start, end } = req.query;
     let filteredBookings = bookings;
     
-    if (start) {
+    if (date) {
+      // Exact date match
       filteredBookings = filteredBookings.filter(booking => 
-        booking.date >= start
+        booking.date === date
       );
-    }
-    
-    if (end) {
-      filteredBookings = filteredBookings.filter(booking => 
-        booking.date <= end
-      );
+    } else {
+      // Date range if start/end provided
+      if (start) {
+        filteredBookings = filteredBookings.filter(booking => 
+          booking.date >= start
+        );
+      }
+      
+      if (end) {
+        filteredBookings = filteredBookings.filter(booking => 
+          booking.date <= end
+        );
+      }
     }
     
     return res.status(200).json({ appointments: filteredBookings });

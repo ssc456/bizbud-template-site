@@ -18,7 +18,7 @@ import ContactEditor from './editors/ContactEditor';
 import SocialEditor from './editors/SocialEditor';
 import ConfigEditor from './editors/ConfigEditor';
 import MediaLibrary from './editors/MediaLibrary';
-import AppointmentsManager from './editors/AppointmentsManager';
+import AppointmentsManager from './editors/appointments/AppointmentsManager';
 import InvoiceEditor from './editors/InvoiceEditor';
 
 import PreviewFrame from './PreviewFrame';
