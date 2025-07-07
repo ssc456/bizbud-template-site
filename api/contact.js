@@ -1,4 +1,4 @@
-import { redis } from './utils/redis.js';
+import redis from './utils/redis.js';
 import { sendEmail } from './utils/email.js';
 
 export default async function handler(req, res) {
