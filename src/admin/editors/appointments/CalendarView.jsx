@@ -59,7 +59,12 @@ export default function CalendarView({
       {/* Calendar - Full width on mobile */}
       <div className="bg-white p-4 sm:p-6 rounded-lg shadow col-span-1">
         <Calendar 
-          onChange={onDateChange}
+          onChange={(date) => {
+            // Stop propagation to prevent navigation
+            onDateChange(date);
+            // Explicitly prevent default navigation behavior
+            return false;
+          }}
           value={selectedDate}
           tileContent={tileContent}
           tileClassName={tileClassName}

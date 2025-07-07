@@ -123,7 +123,12 @@ export default function AppointmentsManager({ initialView = 'list' }) {
   }, [initialView, selectedDate]);
 
   // Handle date change in calendar
-  const handleDateChange = async (date) => {
+  const handleDateChange = async (date, e) => {
+    // Prevent default behavior if it's an event
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
     try {
       setSelectedDate(date);
       setIsLoading(true);

@@ -273,10 +273,10 @@ export default function AdminDashboard() {
                 <Link
                   key={item.id}
                   to={item.path}
-                  className={`flex items-center px-4 py-2 text-sm rounded-md $
+                  className={`flex items-center px-4 py-2 text-sm rounded-md ${
                     activeSection === item.id
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-300 hover:bg-gray-700'
+                      ? 'bg-gray-900 text-white'
+                      : 'text-gray-300 hover:bg-gray-700'
                   }`}
                   onClick={() => setSidebarOpen(false)} 
                 >
