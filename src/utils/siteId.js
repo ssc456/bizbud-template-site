@@ -13,12 +13,12 @@ export function extractSiteId() {
     return siteParam || 'default';
   }
   
-  // For production, handle different Vercel URL formats
-  if (hostname.includes('.') && hostname.includes('vercel.app')) {
+  // For production, handle different EntryNets URL formats
+  if (hostname.includes('.') && hostname.includes('entrynets.com')) {
     // Get the subdomain (everything before first dot)
     const subdomain = hostname.split('.')[0];
-    
-    // Extract the base site ID by removing known common Vercel suffixes
+
+    // Extract the base site ID by removing known common EntryNets suffixes
     // This handles both "seven-site-three" and "seven-site-5vggcvu10-scotts-projects"
     
     // First, check if it's a GitHub user format (-username)

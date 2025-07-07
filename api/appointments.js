@@ -389,7 +389,7 @@ async function bookAppointment(req, res, siteId) {
             <p><strong>Time:</strong> ${time}</p>
             <p><strong>Service:</strong> ${appointment.service || 'General Appointment'}</p>
             <p><strong>Notes:</strong> ${customer.notes || 'No notes provided'}</p>
-            <p>To confirm or cancel this appointment, please log in to your <a href="https://${siteId}.vercel.app/admin/appointments">appointment dashboard</a>.</p>
+            <p>To confirm or cancel this appointment, please log in to your <a href="https://${siteId}.entrynets.com/admin/appointments">appointment dashboard</a>.</p>
           `
         });
       }

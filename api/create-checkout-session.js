@@ -55,8 +55,8 @@ export default async function handler(req, res) {
         },
       ],
       mode: 'subscription',
-      success_url: `https://${siteId}.vercel.app/upgrade-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://${siteId}.vercel.app/upgrade-cancel`,
+      success_url: `https://${siteId}.entrynets.com/upgrade-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://${siteId}.entrynets.com/upgrade-cancel`,
       metadata: {
         siteId,
         paymentType,
