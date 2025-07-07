@@ -33,14 +33,15 @@ export default function AppointmentsAdmin() {
   }, []);
   
   useEffect(() => {
-    const fetchPendingCount = async () => {
-      if (authorized) {
+    if (authorized) {
+      // Add this to fetch the pending count and update state
+      const fetchPendingCount = async () => {
         try {
           const csrfToken = sessionStorage.getItem('csrfToken');
-          const extractedSiteId = window.location.hostname.split('.')[0];
+          const siteId = window.location.hostname.split('.')[0];
           
           const response = await fetch(
-            `/api/appointments?action=pendingCount&siteId=${extractedSiteId}`,
+            `/api/appointments?action=pendingCount&siteId=${siteId}`, 
             {
               credentials: 'include',
               headers: { 'X-CSRF-Token': csrfToken || '' }
@@ -49,19 +50,17 @@ export default function AppointmentsAdmin() {
           
           if (response.ok) {
             const data = await response.json();
-            setPendingCount(data.count);
+            setPendingCount(data.count || 0);
           }
         } catch (error) {
           console.error('Error fetching pending count:', error);
         }
-      }
-    };
-    
-    if (authorized) {
+      };
+      
       fetchPendingCount();
-      // Set up interval to check for new appointments every minute
-      const intervalId = setInterval(fetchPendingCount, 60000);
-      return () => clearInterval(intervalId);
+      // Set up interval to refresh the pending count every minute
+      const interval = setInterval(fetchPendingCount, 60000);
+      return () => clearInterval(interval);
     }
   }, [authorized]);
   

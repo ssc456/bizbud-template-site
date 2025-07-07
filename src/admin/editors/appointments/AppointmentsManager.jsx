@@ -85,7 +85,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
 
   // This effect will update the view when initialView changes (from sidebar)
   useEffect(() => {
-    setView(initialView);
+    setView(initialView === 'pending' ? 'list' : initialView);
     
     // When switching views, load appropriate data
     const loadViewData = async () => {
@@ -94,19 +94,26 @@ export default function AppointmentsManager({ initialView = 'list' }) {
         if (initialView === 'calendar') {
           const appointmentsData = await fetchAppointments(selectedDate);
           setAppointments(appointmentsData);
-        } else if (initialView === 'list') {
-          // When switching to list view, set the tab to "all" by default
-          setListTab('all');
-          const allAppointments = await fetchAllAppointments();
-          setAppointments(allAppointments);
         } else if (initialView === 'pending') {
-          // Special case for pending filter in list view
+          // Special case for pending - set list tab to pending
           setListTab('pending');
           const allAppointments = await fetchAllAppointments();
           setAppointments(allAppointments);
+        } else if (initialView === 'list') {
+          // Default to 'all' tab for normal list view
+          setListTab('all');
+          const allAppointments = await fetchAllAppointments();
+          setAppointments(allAppointments);
+        } else if (initialView === 'dashboard') {
+          const allAppointments = await fetchAllAppointments();
+          setAppointments(allAppointments);
+          await fetchDashboardStats();
+        } else if (initialView === 'settings') {
+          await fetchSettings();
         }
       } catch (error) {
         console.error('Error loading view data:', error);
+        toast.error('Failed to load appointments data');
       } finally {
         setIsLoading(false);
       }
@@ -190,8 +197,11 @@ export default function AppointmentsManager({ initialView = 'list' }) {
       await saveSettings(updatedSettings);
       setSettings(updatedSettings);
       toast.success('Settings saved successfully');
+      return true;  // Return success so the SettingsView can update its state
     } catch (error) {
+      console.error('Error saving settings:', error);
       toast.error('Failed to save settings');
+      throw error;  // Re-throw to let SettingsView know it failed
     }
   };
 
