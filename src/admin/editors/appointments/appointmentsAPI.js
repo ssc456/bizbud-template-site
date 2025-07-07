@@ -134,9 +134,19 @@ export async function fetchDashboardStats() {
     
     // Calculate today's appointments
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const todayStr = format(today, 'yyyy-MM-dd');
     const todayAppointments = appointments.filter(appt => 
       appt.date === todayStr && appt.status !== 'cancelled'
+    );
+    
+    // Calculate tomorrow's appointments
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
+    const tomorrowAppointments = appointments.filter(appt => 
+      appt.date === tomorrowStr && appt.status !== 'cancelled'
     );
     
     // Calculate this week's appointments
@@ -164,6 +174,7 @@ export async function fetchDashboardStats() {
       stats: {
         pending: pendingCount,
         today: todayAppointments.length,
+        tomorrow: tomorrowAppointments.length, // Add tomorrow count
         week: weekAppointments.length
       },
       dateMap

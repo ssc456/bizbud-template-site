@@ -242,6 +242,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
               setDateFilter('today');
               setSelectedDate(new Date());
               fetchAppointmentsForDate(new Date());
+              handleViewChange('calendar'); // Add this line to ensure we stay in calendar view
             }}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'today' 
@@ -265,6 +266,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
               tomorrow.setDate(tomorrow.getDate() + 1);
               setSelectedDate(tomorrow);
               fetchAppointmentsForDate(tomorrow);
+              handleViewChange('calendar'); // Add this line to ensure we stay in calendar view
             }}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'tomorrow' 
@@ -274,7 +276,9 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           >
             <div className="flex justify-between items-center">
               <span className="font-medium">Tomorrow</span>
-              {/* You'd need to add a stats.tomorrow count */}
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                {stats.tomorrow || 0}
+              </span>
             </div>
             <p className="text-sm text-gray-500 mt-1">{format(addDays(new Date(), 1), 'MMM d, yyyy')}</p>
           </button>
@@ -371,12 +375,21 @@ export default function AppointmentsManager({ initialView = 'list' }) {
       
       // Set appropriate date range based on type
       if (rangeType === 'thisWeek') {
+        // Start with today and end 7 days later
+        startDate.setHours(0, 0, 0, 0);
         endDate.setDate(startDate.getDate() + 7);
+        endDate.setHours(23, 59, 59, 999);
       } else if (rangeType === 'thisMonth') {
-        endDate.setMonth(startDate.getMonth() + 1);
+        // Start with first day of current month
+        startDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        // End with last day of current month
+        endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+        endDate.setHours(23, 59, 59, 999);
       } else if (rangeType === 'custom') {
         startDate = new Date(customDateRange.start);
+        startDate.setHours(0, 0, 0, 0);
         endDate = new Date(customDateRange.end);
+        endDate.setHours(23, 59, 59, 999);
       }
       
       // Fetch all appointments and filter client-side
