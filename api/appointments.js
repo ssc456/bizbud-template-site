@@ -820,9 +820,9 @@ function generateTimeSlots(startTime, endTime, duration, bufferTime, bookedAppoi
     }
     
     // Move to next slot
-    currentSlot = addMinutes(currentSlot, parseInt(duration) || 30 + parseInt(bufferTime) || 0);
+    currentSlot = addMinutes(currentSlot, (parseInt(duration) || 30) + (parseInt(bufferTime) || 0));
   }
-  
+
   console.log(`Generated ${slots.length} available time slots`);
   return slots;
 }

@@ -78,8 +78,7 @@ useEffect(() => {
         }
       }
     } catch (error) {
-      console.error('Error fetching available times:', error);
-      setError('Failed to load available times');
+      // Error handling
     }
   };
   
@@ -109,9 +108,6 @@ useEffect(() => {
     try {
       const response = await fetch(`/api/appointments?action=book&siteId=${siteId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({
           date: format(selectedDate, 'yyyy-MM-dd'),
           time: selectedTime,
@@ -137,6 +133,17 @@ useEffect(() => {
     }
   };
   
+  // Add this function to update duration when service changes
+const handleServiceChange = (serviceId) => {
+  setSelectedService(serviceId);
+  
+  // Update duration based on selected service
+  const selectedServiceType = serviceTypes.find(s => s.id === serviceId);
+  if (selectedServiceType && selectedServiceType.duration) {
+    setSelectedDuration(selectedServiceType.duration);
+  }
+};
+
   return (
     <section id="appointments" className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -330,13 +337,16 @@ useEffect(() => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Service Type
                     </label>
-                    <select
+                    <select 
                       value={selectedService}
-                      onChange={(e) => setSelectedService(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                      onChange={(e) => handleServiceChange(e.target.value)}
+                      className="w-full p-2 border rounded"
+                      required
                     >
                       {serviceTypes.map(service => (
-                        <option key={service.id} value={service.id}>{service.name}</option>
+                        <option key={service.id} value={service.id}>
+                          {service.name} ({service.duration} min)
+                        </option>
                       ))}
                     </select>
                   </div>
