@@ -108,6 +108,9 @@ useEffect(() => {
     try {
       const response = await fetch(`/api/appointments?action=book&siteId=${siteId}`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'  // Add this header
+        },
         body: JSON.stringify({
           date: format(selectedDate, 'yyyy-MM-dd'),
           time: selectedTime,
@@ -123,7 +126,7 @@ useEffect(() => {
         setStep(4);
       } else {
         const error = await response.json();
-        setError(error.message || 'Failed to book appointment');
+        setError(error.error || 'Failed to book appointment');
       }
     } catch (error) {
       console.error('Error booking appointment:', error);
