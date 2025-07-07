@@ -154,23 +154,75 @@ const handleServiceChange = (serviceId) => {
           <h2 className="text-3xl font-bold text-center mb-8">Book an Appointment</h2>
           
           <div className="bg-white rounded-lg shadow-lg p-6">
-            {/* Progress Steps */}
-            <div className="flex justify-between items-center mb-8">
-              {['Select Date', 'Select Time', 'Your Details', 'Confirmation'].map((label, i) => (
-                <div key={i} className="flex flex-col items-center">
-                  <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                    step > i + 1 ? 'bg-green-500 text-white' : 
-                    step === i + 1 ? 'bg-blue-600 text-white' : 
-                    'bg-gray-200 text-gray-500'
-                  }`}>
-                    {step > i + 1 ? '✓' : i + 1}
-                  </div>
-                  <span className={`text-sm mt-1 ${
-                    step >= i + 1 ? 'text-gray-800' : 'text-gray-400'
-                  }`}>{label}</span>
-                </div>
-              ))}
-            </div>
+            {/* Progress Steps - Responsive */}
+<div className="mb-8">
+  {/* Mobile Progress Indicator */}
+  <div className="flex md:hidden justify-between px-2 mb-4">
+    <span className="text-sm font-medium">Step {step} of 4:</span>
+    <span className="text-sm font-medium text-blue-600">
+      {step === 1 ? 'Select Date' : 
+       step === 2 ? 'Select Time' : 
+       step === 3 ? 'Your Details' : 'Confirmation'}
+    </span>
+  </div>
+  
+  {/* Desktop Progress Steps */}
+  <div className="hidden md:flex justify-between items-center">
+    {['Select Date', 'Select Time', 'Your Details', 'Confirmation'].map((label, i) => (
+      <div key={i} className="flex flex-col items-center">
+        <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+          step > i + 1 ? 'bg-green-500 text-white' : 
+          step === i + 1 ? 'bg-blue-600 text-white' : 
+          'bg-gray-200 text-gray-500'
+        }`}>
+          {step > i + 1 ? '✓' : i + 1}
+        </div>
+        <span className={`text-sm mt-1 ${
+          step >= i + 1 ? 'text-gray-800' : 'text-gray-400'
+        }`}>{label}</span>
+      </div>
+    ))}
+  </div>
+</div>
+
+{/* Month Navigation - Improved for Mobile */}
+<div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-2 sm:space-y-0">
+  <button 
+    onClick={() => {
+      const newMonth = viewMonth.month === 1 
+        ? { year: viewMonth.year - 1, month: 12 }
+        : { year: viewMonth.year, month: viewMonth.month - 1 };
+      setViewMonth(newMonth);
+    }}
+    className="w-full sm:w-auto p-2 border rounded flex justify-center items-center"
+  >
+    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    </svg>
+    <span className="hidden sm:inline">Previous Month</span>
+    <span className="sm:hidden">Previous</span>
+  </button>
+  
+  <h3 className="text-lg font-medium">
+    {new Date(viewMonth.year, viewMonth.month - 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+  </h3>
+  
+  <button 
+    onClick={() => {
+      const newMonth = viewMonth.month === 12 
+        ? { year: viewMonth.year + 1, month: 1 }
+        : { year: viewMonth.year, month: viewMonth.month + 1 };
+      setViewMonth(newMonth);
+    }}
+    className="w-full sm:w-auto p-2 border rounded flex justify-center items-center"
+  >
+    <span className="hidden sm:inline">Next Month</span>
+    <span className="sm:hidden">Next</span>
+    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
+</div>
             
             {error && (
               <div className="mb-6 p-3 bg-red-100 text-red-700 rounded-lg">
@@ -178,42 +230,11 @@ const handleServiceChange = (serviceId) => {
               </div>
             )}
             
-            {/* Month Navigation */}
-            <div className="flex justify-between items-center mb-4">
-              <button 
-                onClick={() => {
-                  const newMonth = viewMonth.month === 1 
-                    ? { year: viewMonth.year - 1, month: 12 }
-                    : { year: viewMonth.year, month: viewMonth.month - 1 };
-                  setViewMonth(newMonth);
-                }}
-                className="p-2 border rounded"
-              >
-                ← Previous Month
-              </button>
-              
-              <h3 className="text-lg font-medium">
-                {new Date(viewMonth.year, viewMonth.month - 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-              </h3>
-              
-              <button 
-                onClick={() => {
-                  const newMonth = viewMonth.month === 12 
-                    ? { year: viewMonth.year + 1, month: 1 }
-                    : { year: viewMonth.year, month: viewMonth.month + 1 };
-                  setViewMonth(newMonth);
-                }}
-                className="p-2 border rounded"
-              >
-                Next Month →
-              </button>
-            </div>
-            
             {/* Step 1: Date Selection */}
             {step === 1 && (
               <div className="space-y-6">
                 <h3 className="text-xl font-medium">Select a Date</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
                   {availableDates.map((date) => {
                     const dateObj = new Date(date);
                     return (
@@ -249,7 +270,7 @@ const handleServiceChange = (serviceId) => {
                   Available times for {format(selectedDate, 'EEEE, MMMM d, yyyy')}
                 </p>
                 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
                   {availableTimes.map((slot) => (
                     <button
                       key={slot.time}

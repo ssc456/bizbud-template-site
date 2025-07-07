@@ -228,33 +228,37 @@ export default function AppointmentsManager({ initialView = 'list' }) {
   return (
     <div className="space-y-6">
       {/* Navigation */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Appointments Manager</h2>
-        <div className="flex space-x-2">
-          <button 
-            className={`px-3 py-1.5 rounded-lg ${view === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-            onClick={() => handleViewChange('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button 
-            className={`px-3 py-1.5 rounded-lg ${view === 'calendar' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-            onClick={() => handleViewChange('calendar')}
-          >
-            Calendar
-          </button>
-          <button 
-            className={`px-3 py-1.5 rounded-lg ${view === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-            onClick={() => handleViewChange('list')}
-          >
-            List
-          </button>
-          <button 
-            className={`px-3 py-1.5 rounded-lg ${view === 'settings' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-            onClick={() => handleViewChange('settings')}
-          >
-            Settings
-          </button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+        <h2 className="text-2xl font-bold">Appointments</h2>
+        
+        {/* Mobile Tab Navigation */}
+        <div className="flex w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex space-x-2 min-w-max">
+            <button 
+              className={`px-3 py-1.5 rounded-lg ${view === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+              onClick={() => handleViewChange('dashboard')}
+            >
+              Dashboard
+            </button>
+            <button 
+              className={`px-3 py-1.5 rounded-lg ${view === 'calendar' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+              onClick={() => handleViewChange('calendar')}
+            >
+              Calendar
+            </button>
+            <button 
+              className={`px-3 py-1.5 rounded-lg ${view === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+              onClick={() => handleViewChange('list')}
+            >
+              List
+            </button>
+            <button 
+              className={`px-3 py-1.5 rounded-lg ${view === 'settings' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+              onClick={() => handleViewChange('settings')}
+            >
+              Settings
+            </button>
+          </div>
         </div>
       </div>
       

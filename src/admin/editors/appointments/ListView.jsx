@@ -189,54 +189,58 @@ export default function ListView({
               <p className="mt-1 text-sm text-gray-500">Try changing your search or filters.</p>
             </div>
           ) : (
-            <div className="overflow-hidden border border-gray-200 rounded-lg">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredAppointments
-                    .sort((a, b) => new Date(a.date) - new Date(b.date))
-                    .map(appointment => (
-                      <tr key={appointment.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{appointment.customer.name}</div>
-                          <div className="text-sm text-gray-500">{appointment.customer.email}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{appointment.service || "General"}</div>
-                          <div className="text-sm text-gray-500">{appointment.duration} mins</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{appointment.date}</div>
-                          <div className="text-sm text-gray-500">{appointment.time}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            appointment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            appointment.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <>
+              {/* Mobile List View */}
+              <div className="lg:hidden">
+                {filteredAppointments
+                  .sort((a, b) => new Date(a.date) - new Date(b.date))
+                  .map(appointment => (
+                    <div key={appointment.id} className="bg-white shadow rounded-lg mb-4 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium">{appointment.customer.name}</h4>
+                          <p className="text-sm text-gray-500">{appointment.customer.email}</p>
+                        </div>
+                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                          appointment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          appointment.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                        </span>
+                      </div>
+                      
+                      <div className="p-4">
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <div>
+                            <span className="text-xs text-gray-500 block">Date</span>
+                            <span className="font-medium">{appointment.date}</span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500 block">Time</span>
+                            <span className="font-medium">{appointment.time}</span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500 block">Service</span>
+                            <span className="font-medium">{appointment.service || "General"}</span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500 block">Duration</span>
+                            <span className="font-medium">{appointment.duration} mins</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-end space-x-2 pt-2 border-t border-gray-100">
                           <button 
                             onClick={() => onViewAppointment(appointment)} 
-                            className="text-blue-600 hover:text-blue-900 mr-4"
+                            className="px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded"
                           >
                             View
                           </button>
                           {appointment.status === 'pending' && (
                             <button 
                               onClick={() => onConfirmAppointment(appointment.id)} 
-                              className="text-green-600 hover:text-green-900 mr-4"
+                              className="px-3 py-1 text-xs bg-green-50 text-green-600 rounded"
                             >
                               Confirm
                             </button>
@@ -244,17 +248,85 @@ export default function ListView({
                           {appointment.status !== 'cancelled' && (
                             <button 
                               onClick={() => onCancelAppointment(appointment.id)} 
-                              className="text-red-600 hover:text-red-900"
+                              className="px-3 py-1 text-xs bg-red-50 text-red-600 rounded"
                             >
                               Cancel
                             </button>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              {/* Desktop Table View - hide on mobile */}
+              <div className="hidden lg:block overflow-hidden border border-gray-200 rounded-lg">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredAppointments
+                      .sort((a, b) => new Date(a.date) - new Date(b.date))
+                      .map(appointment => (
+                        <tr key={appointment.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{appointment.customer.name}</div>
+                            <div className="text-sm text-gray-500">{appointment.customer.email}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{appointment.service || "General"}</div>
+                            <div className="text-sm text-gray-500">{appointment.duration} mins</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{appointment.date}</div>
+                            <div className="text-sm text-gray-500">{appointment.time}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              appointment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              appointment.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button 
+                              onClick={() => onViewAppointment(appointment)} 
+                              className="text-blue-600 hover:text-blue-900 mr-4"
+                            >
+                              View
+                            </button>
+                            {appointment.status === 'pending' && (
+                              <button 
+                                onClick={() => onConfirmAppointment(appointment.id)} 
+                                className="text-green-600 hover:text-green-900 mr-4"
+                              >
+                                Confirm
+                              </button>
+                            )}
+                            {appointment.status !== 'cancelled' && (
+                              <button 
+                                onClick={() => onCancelAppointment(appointment.id)} 
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                Cancel
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </>
       )}

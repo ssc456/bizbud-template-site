@@ -9,6 +9,7 @@ export default function AppointmentsAdmin() {
   const [authorized, setAuthorized] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -104,12 +105,55 @@ export default function AppointmentsAdmin() {
     );
   }
   
+  // Return responsive layout
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-100 overflow-hidden">
       <ToastContainer position="top-right" />
       
-      {/* Improved Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+      {/* Mobile Header with menu toggle */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between lg:hidden">
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100"
+        >
+          <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h1 className="text-lg font-medium">Appointments</h1>
+        <div>
+          <span className="inline-flex relative">
+            <button
+              onClick={() => setActiveSection('pending')}
+              className="p-2 text-gray-600 hover:text-gray-900"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+            {pendingCount > 0 && (
+              <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {pendingCount}
+              </span>
+            )}
+          </span>
+        </div>
+      </div>
+      
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div 
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="p-4 border-b border-gray-200">
           <h1 className="text-xl font-semibold text-gray-800">Appointments</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your calendar</p>
@@ -212,7 +256,7 @@ export default function AppointmentsAdmin() {
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <AppointmentsManager 
             initialView={
               activeSection === 'dashboard' ? 'dashboard' : 
