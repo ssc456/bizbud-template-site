@@ -238,25 +238,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
         
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <button 
-            onClick={() => {
-              const today = new Date();
-              setDateFilter('today');
-              setSelectedDate(today);
-              
-              // Use the improved filtering logic
-              const todayStr = format(today, 'yyyy-MM-dd');
-              fetchAllAppointments().then(allAppts => {
-                const todayAppointments = allAppts.filter(appt => appt.date === todayStr);
-                setAppointments(todayAppointments);
-                setIsLoading(false);
-                handleViewChange('calendar');
-              }).catch(() => {
-                toast.error('Failed to load today\'s appointments');
-                setIsLoading(false);
-              });
-              
-              setIsLoading(true);
-            }}
+            onClick={() => filterAppointmentsByDate('today')}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'today' 
                 ? 'border-blue-500 bg-blue-50' 
@@ -273,14 +255,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           </button>
           
           <button 
-            onClick={() => {
-              setDateFilter('tomorrow');
-              const tomorrow = new Date();
-              tomorrow.setDate(tomorrow.getDate() + 1);
-              setSelectedDate(tomorrow);
-              fetchAppointmentsForDate(tomorrow);
-              setTimeout(() => handleViewChange('calendar'), 0); // Keep view on calendar
-            }}
+            onClick={() => filterAppointmentsByDate('tomorrow')}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'tomorrow' 
                 ? 'border-blue-500 bg-blue-50' 
@@ -297,10 +272,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           </button>
           
           <button 
-            onClick={() => {
-              setDateFilter('thisWeek');
-              fetchAppointmentsForRange('thisWeek');
-            }}
+            onClick={() => filterAppointmentsByDate('thisWeek')}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'thisWeek' 
                 ? 'border-blue-500 bg-blue-50' 
@@ -317,10 +289,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
           </button>
           
           <button 
-            onClick={() => {
-              setDateFilter('thisMonth');
-              fetchAppointmentsForRange('thisMonth');
-            }}
+            onClick={() => filterAppointmentsByDate('thisMonth')}
             className={`p-4 text-left rounded-lg border ${
               dateFilter === 'thisMonth' 
                 ? 'border-blue-500 bg-blue-50' 
@@ -345,10 +314,7 @@ export default function AppointmentsManager({ initialView = 'list' }) {
               value={format(selectedDate, 'yyyy-MM-dd')}
               onChange={(e) => {
                 const date = new Date(e.target.value);
-                setSelectedDate(date);
-                setDateFilter('specific');
-                fetchAppointmentsForDate(date);
-                setTimeout(() => handleViewChange('calendar'), 0); // Keep view on calendar
+                filterAppointmentsByDate('specific', date);
               }}
               className="p-2 border border-gray-300 rounded w-full"
             />
@@ -427,6 +393,76 @@ export default function AppointmentsManager({ initialView = 'list' }) {
       setAppointments(filteredAppointments);
     } catch (error) {
       toast.error('Failed to load appointments for the selected date range');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Single function to handle all date filtering
+  const filterAppointmentsByDate = async (filterType, date = new Date()) => {
+    setIsLoading(true);
+    setDateFilter(filterType);
+    
+    try {
+      const allAppointments = await fetchAllAppointments();
+      let filtered = [];
+      
+      switch (filterType) {
+        case 'today': {
+          const todayStr = format(new Date(), 'yyyy-MM-dd');
+          console.log(`Filtering for today: ${todayStr}`);
+          filtered = allAppointments.filter(a => a.date === todayStr);
+          break;
+        }
+        case 'tomorrow': {
+          const tomorrow = addDays(new Date(), 1);
+          const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
+          console.log(`Filtering for tomorrow: ${tomorrowStr}`);
+          filtered = allAppointments.filter(a => a.date === tomorrowStr);
+          break;
+        }
+        case 'thisWeek': {
+          const today = new Date();
+          const nextWeek = addDays(today, 7);
+          console.log(`Filtering for week: ${format(today, 'yyyy-MM-dd')} to ${format(nextWeek, 'yyyy-MM-dd')}`);
+          filtered = allAppointments.filter(a => {
+            const apptDate = new Date(a.date);
+            return apptDate >= today && apptDate <= nextWeek;
+          });
+          break;
+        }
+        case 'thisMonth': {
+          const today = new Date();
+          const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+          const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          console.log(`Filtering for month: ${format(firstDay, 'yyyy-MM-dd')} to ${format(lastDay, 'yyyy-MM-dd')}`);
+          filtered = allAppointments.filter(a => {
+            const apptDate = new Date(a.date);
+            return apptDate >= firstDay && apptDate <= lastDay;
+          });
+          break;
+        }
+        case 'specific': {
+          const dateStr = format(date, 'yyyy-MM-dd');
+          console.log(`Filtering for specific date: ${dateStr}`);
+          filtered = allAppointments.filter(a => a.date === dateStr);
+          break;
+        }
+        default:
+          filtered = allAppointments;
+      }
+      
+      // Set appointments and change view in one block
+      console.log(`Found ${filtered.length} appointments for ${filterType}`);
+      setAppointments(filtered);
+      setSelectedDate(date);
+      handleViewChange('calendar');
+      
+      return filtered;
+    } catch (error) {
+      console.error('Error filtering appointments:', error);
+      toast.error('Failed to filter appointments');
+      return [];
     } finally {
       setIsLoading(false);
     }
@@ -578,8 +614,26 @@ export default function AppointmentsManager({ initialView = 'list' }) {
                             <span className="font-medium">Time:</span> {appointment.time} ({appointment.duration} min)
                           </p>
                           <p className="text-sm text-gray-600 mb-1">
-                            <span className="font-medium">Date:</span> {new Date(appointment.date).toLocaleDateString()}
-                          </p>
+                            <span className="font-medium">Date:</span> {
+                              // First, parse the date consistently
+                              (() => {
+                                try {
+                                  // Log the raw date for debugging
+                                  console.log("Raw date value:", appointment.date);
+                                  
+                                  // Try to parse the date and format it consistently
+                                  const dateObj = new Date(appointment.date);
+                                  return dateObj.toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit'
+                                  });
+                                } catch (e) {
+                                  console.error("Date parsing error:", e);
+                                  return appointment.date; // Fall back to raw value
+                                }
+                              })()
+                            }</p>
                           <p className="text-sm text-gray-600 mb-1">
                             <span className="font-medium">Service:</span> {appointment.service || 'General Appointment'}
                           </p>
