@@ -371,10 +371,17 @@ useEffect(() => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-medium text-gray-900 mb-2">Appointment Request Submitted</h3>
-                <p className="text-gray-600 mb-4">
-                  We've received your appointment request for {format(selectedDate, 'MMMM d, yyyy')} at {selectedTime}.
-                  We'll review your request and send you a confirmation email shortly.
-                </p>
+                <div className="text-gray-600 mb-6 max-w-md mx-auto">
+                  <p className="mb-3">
+                    We've received your appointment request for {format(selectedDate, 'MMMM d, yyyy')} at {selectedTime}.
+                  </p>
+                  <p className="mb-3">
+                    <strong>Please note:</strong> This is a request only. You'll receive a confirmation email when your appointment is approved.
+                  </p>
+                  <p>
+                    A confirmation email has been sent to <span className="font-medium">{formData.email}</span>.
+                  </p>
+                </div>
                 <button
                   onClick={() => {
                     setStep(1);

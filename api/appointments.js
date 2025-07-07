@@ -370,28 +370,69 @@ async function bookAppointment(req, res, siteId) {
     
     // 2. Send notification to site owner
     try {
-      // Get site owner email from client data
+      // First check for admin email in site settings
+      const siteSettings = await redis.get(`site:${siteId}:settings`);
       const clientData = await redis.get(`site:${siteId}:client`);
-      const ownerEmail = clientData?.adminEmail || clientData?.email;
+      
+      // Try multiple sources to find admin email
+      const ownerEmail = siteSettings?.adminEmail || 
+                         clientData?.adminEmail || 
+                         clientData?.email ||
+                         clientData?.contactEmail;
       
       if (ownerEmail) {
+        console.log(`[Appointments API] Sending notification to owner: ${ownerEmail}`);
+        
+        // Get business name
+        const businessName = clientData?.siteTitle || clientData?.businessName || siteId;
+        
         await sendEmail({
           to: ownerEmail,
-          subject: `New Appointment Request - ${businessName || siteId}`,
+          subject: `New Appointment Request - ${businessName}`,
           text: `A new appointment has been requested for ${date} at ${time}.`,
           html: `
             <h2>New Appointment Request</h2>
-            <p>A new appointment has been requested.</p>
-            <p><strong>Customer:</strong> ${customer.name}</p>
-            <p><strong>Email:</strong> ${customer.email}</p>
-            <p><strong>Phone:</strong> ${customer.phone}</p>
-            <p><strong>Date:</strong> ${date}</p>
-            <p><strong>Time:</strong> ${time}</p>
-            <p><strong>Service:</strong> ${appointment.service || 'General Appointment'}</p>
-            <p><strong>Notes:</strong> ${customer.notes || 'No notes provided'}</p>
-            <p>To confirm or cancel this appointment, please log in to your <a href="https://${siteId}.entrynets.com/admin/appointments">appointment dashboard</a>.</p>
+            <p>A new appointment has been requested on your website.</p>
+            <table style="border-collapse: collapse; width: 100%; max-width: 500px; margin: 20px 0; border: 1px solid #e2e8f0;">
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold;">Customer</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0;">${customer.name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold;">Email</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0;">${customer.email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold;">Phone</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0;">${customer.phone}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold;">Date</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0;">${date}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold;">Time</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0;">${time}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold;">Service</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0;">${appointment.service || 'General Appointment'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold;">Notes</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0;">${customer.notes || 'No notes provided'}</td>
+              </tr>
+            </table>
+            <p>
+              <a href="https://${siteId}.entrynets.com/admin/appointments" 
+                 style="display: inline-block; background-color: #3182ce; color: white; text-decoration: none; padding: 10px 16px; border-radius: 4px; font-weight: 500;">
+                Manage Appointment
+              </a>
+            </p>
           `
         });
+      } else {
+        console.warn(`[Appointments API] No owner email found for site: ${siteId}`);
       }
     } catch (emailError) {
       console.error('Failed to send owner notification email:', emailError);
