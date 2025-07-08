@@ -19,15 +19,29 @@ export default function SubscriptionPage() {
       setLoading(true);
       const siteId = window.location.hostname.split('.')[0];
       
+      // Get CSRF token from sessionStorage
+      const csrfToken = sessionStorage.getItem('csrfToken');
+      
       // First get payment tier
-      const clientResponse = await fetch(`/api/client-data?siteId=${siteId}`);
+      const clientResponse = await fetch(`/api/client-data?siteId=${siteId}`, {
+        credentials: 'include',
+        headers: {
+          'X-CSRF-Token': csrfToken || ''
+        }
+      });
+      
       if (clientResponse.ok) {
         const clientData = await clientResponse.json();
         setPaymentTier(clientData.paymentTier || 'FREE');
       }
       
       // Then get subscription details if any
-      const response = await fetch(`/api/subscription?siteId=${siteId}`);
+      const response = await fetch(`/api/subscription?siteId=${siteId}`, {
+        credentials: 'include',
+        headers: {
+          'X-CSRF-Token': csrfToken || ''
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -50,11 +64,15 @@ export default function SubscriptionPage() {
     try {
       setCancelLoading(true);
       const siteId = window.location.hostname.split('.')[0];
+      const csrfToken = sessionStorage.getItem('csrfToken');
+      
       const response = await fetch('/api/subscription', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || ''
         },
+        credentials: 'include',
         body: JSON.stringify({ siteId }),
       });
       
