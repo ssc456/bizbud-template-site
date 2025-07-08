@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
-export default function SettingsView({ settings, onSaveSettings, onCleanup }) {
+export default function SettingsView({ settings, onSaveSettings }) {
   const [localSettings, setLocalSettings] = useState(settings);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -50,30 +50,6 @@ export default function SettingsView({ settings, onSaveSettings, onCleanup }) {
       toast.error('Failed to save settings');
     } finally {
       setIsSaving(false);
-    }
-  };
-  
-  const handleCleanup = async () => {
-    if (!confirm("This will remove appointments older than 6 months. Continue?")) return;
-    
-    try {
-      const csrfToken = sessionStorage.getItem('csrfToken');
-      const extractedSiteId = window.location.hostname.split('.')[0];
-      
-      const response = await fetch(`/api/appointments?action=cleanup&siteId=${extractedSiteId}`, {
-        method: 'POST',
-        headers: { 'X-CSRF-Token': csrfToken || '' }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        toast.success(`Removed ${data.removed} old appointments`);
-      } else {
-        toast.error('Failed to clean up old appointments');
-      }
-    } catch (error) {
-      console.error('Error during cleanup:', error);
-      toast.error('Failed to clean up old appointments');
     }
   };
 
@@ -170,6 +146,12 @@ export default function SettingsView({ settings, onSaveSettings, onCleanup }) {
                         <option value={60}>1 hour</option>
                         <option value={90}>1.5 hours</option>
                         <option value={120}>2 hours</option>
+                        <option value={180}>3 hours</option>
+                        <option value={240}>4 hours</option>
+                        <option value={300}>5 hours</option>
+                        <option value={360}>6 hours</option>
+                        <option value={420}>7 hours</option>
+                        <option value={480}>8 hours</option>
                       </select>
                     </div>
                   </div>
@@ -235,15 +217,6 @@ export default function SettingsView({ settings, onSaveSettings, onCleanup }) {
           ) : (
             'Save Settings'
           )}
-        </button>
-        
-        {/* Maintenance section */}
-        <button
-          onClick={handleCleanup}
-          disabled={isSaving}
-          className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:bg-gray-400"
-        >
-          Clean Up Old Appointments
         </button>
       </div>
     </div>

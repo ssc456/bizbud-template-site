@@ -138,6 +138,20 @@ async function getSettings(req, res, siteId) {
         { id: 'general', name: 'General Appointment', enabled: true, duration: 30 },
         { id: 'consultation', name: 'Consultation', enabled: true, duration: 60 },
         { id: 'followup', name: 'Follow-up', enabled: true, duration: 15 }
+      ],
+      durations: [
+        { value: 15, enabled: true, label: '15 minutes' },
+        { value: 30, enabled: true, label: '30 minutes' },
+        { value: 45, enabled: true, label: '45 minutes' },
+        { value: 60, enabled: true, label: '1 hour' },
+        { value: 90, enabled: true, label: '1.5 hours' },
+        { value: 120, enabled: true, label: '2 hours' },
+        { value: 180, enabled: true, label: '3 hours' },
+        { value: 240, enabled: true, label: '4 hours' },
+        { value: 300, enabled: true, label: '5 hours' },
+        { value: 360, enabled: true, label: '6 hours' },
+        { value: 420, enabled: true, label: '7 hours' },
+        { value: 480, enabled: true, label: '8 hours' }
       ]
     };
     return res.status(200).json(defaultSettings);
