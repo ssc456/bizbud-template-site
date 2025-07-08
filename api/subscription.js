@@ -28,6 +28,30 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Site not found' });
       }
       
+      // For admin requests, verify authentication
+      if (req.headers.referer?.includes('/admin')) {
+        const cookies = req.cookies || {};
+        const authToken = cookies.adminToken;
+        
+        if (!authToken) {
+          return res.status(401).json({ error: 'Authentication required' });
+        }
+        
+        // Verify this token is for this site
+        const tokenSiteId = await redis.get(`auth:${authToken}`);
+        if (!tokenSiteId || tokenSiteId !== siteId) {
+          return res.status(403).json({ error: 'Not authorized for this site' });
+        }
+        
+        // Verify CSRF token
+        const csrfHeader = req.headers['x-csrf-token'];
+        const storedCsrfToken = await redis.get(`csrf:${authToken}`);
+        
+        if (!csrfHeader || !storedCsrfToken || csrfHeader !== storedCsrfToken) {
+          return res.status(403).json({ error: 'Invalid CSRF token' });
+        }
+      }
+      
       // Check if site has a subscription
       if (!siteData.subscriptionId) {
         return res.json(null); // No subscription
@@ -36,13 +60,32 @@ export default async function handler(req, res) {
       // Get subscription details from Stripe
       const subscription = await stripe.subscriptions.retrieve(siteData.subscriptionId);
       
-      // Format the subscription data for the frontend
+      // Format the subscription data with proper timestamp validation
       const formattedSubscription = {
         id: subscription.id,
         status: subscription.status,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        // Add null/undefined checks and try-catch for timestamp conversion
+        currentPeriodStart: (() => {
+          try {
+            return subscription.current_period_start ? 
+              new Date(subscription.current_period_start * 1000).toISOString() : 
+              null;
+          } catch (e) {
+            console.error('Invalid start timestamp:', subscription.current_period_start);
+            return null;
+          }
+        })(),
+        currentPeriodEnd: (() => {
+          try {
+            return subscription.current_period_end ? 
+              new Date(subscription.current_period_end * 1000).toISOString() : 
+              null;
+          } catch (e) {
+            console.error('Invalid end timestamp:', subscription.current_period_end);
+            return null;
+          }
+        })(),
+        cancelAtPeriodEnd: !!subscription.cancel_at_period_end,
         plan: subscription.items.data[0]?.plan.nickname || 'Premium',
       };
       
