@@ -36,9 +36,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Verify authentication
-  const authToken = req.headers.authorization?.split(' ')[1];
-  
+  // Verify authentication - UPDATED to use cookies like other APIs
+  let authToken = req.headers.authorization?.split(' ')[1];
+
+  // If no auth token in header or it's "null", check cookies (for browser uploads)
+  if (!authToken || authToken === 'null') {
+    const cookies = req.cookies || {};
+    authToken = cookies.adminToken;
+    console.log('[Upload API] Using cookie authentication instead of header', { 
+      hasAdminToken: !!cookies.adminToken
+    });
+  }
+
   if (!authToken) {
     return res.status(401).json({ error: 'Authentication required' });
   }
