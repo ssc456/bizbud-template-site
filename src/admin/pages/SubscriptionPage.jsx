@@ -1,19 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { format } from 'date-fns';
+import { CreditCardIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 export default function SubscriptionPage() {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [paymentTier, setPaymentTier] = useState('FREE');
   
   useEffect(() => {
-    fetchSubscription();
+    fetchSubscriptionInfo();
   }, []);
   
-  const fetchSubscription = async () => {
+  // Fetch subscription info from your API
+  const fetchSubscriptionInfo = async () => {
     try {
       setLoading(true);
       const siteId = window.location.hostname.split('.')[0];
+      
+      // First get payment tier
+      const clientResponse = await fetch(`/api/client-data?siteId=${siteId}`);
+      if (clientResponse.ok) {
+        const clientData = await clientResponse.json();
+        setPaymentTier(clientData.paymentTier || 'FREE');
+      }
+      
+      // Then get subscription details if any
       const response = await fetch(`/api/subscription?siteId=${siteId}`);
       
       if (response.ok) {
@@ -28,6 +41,7 @@ export default function SubscriptionPage() {
     }
   };
   
+  // Handle cancel subscription
   const handleCancelSubscription = async () => {
     if (!window.confirm('Are you sure you want to cancel your subscription? Your site will revert to the free tier.')) {
       return;
@@ -46,7 +60,7 @@ export default function SubscriptionPage() {
       
       if (response.ok) {
         toast.success('Subscription successfully canceled');
-        fetchSubscription(); // Refresh data
+        fetchSubscriptionInfo(); // Refresh data
       } else {
         const data = await response.json();
         throw new Error(data.error || 'Failed to cancel subscription');
@@ -60,8 +74,11 @@ export default function SubscriptionPage() {
   };
   
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Subscription Management</h1>
+    <div className="bg-white rounded-lg shadow-md p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6 flex items-center">
+        <CreditCardIcon className="h-6 w-6 mr-2" /> 
+        Subscription Management
+      </h1>
       
       {loading ? (
         <div className="flex justify-center py-10">
@@ -91,7 +108,7 @@ export default function SubscriptionPage() {
             <div>
               <h3 className="text-sm font-medium text-gray-500">Current Period</h3>
               <p className="text-lg">
-                {new Date(subscription.currentPeriodStart).toLocaleDateString()} to {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                {format(new Date(subscription.currentPeriodStart), 'MMMM dd, yyyy')} to {format(new Date(subscription.currentPeriodEnd), 'MMMM dd, yyyy')}
               </p>
             </div>
             
@@ -101,7 +118,7 @@ export default function SubscriptionPage() {
                   Your subscription will be canceled at the end of the current billing period.
                 </p>
                 <p className="text-sm text-yellow-700 mt-2">
-                  You'll lose access to premium features on {new Date(subscription.currentPeriodEnd).toLocaleDateString()}.
+                  You'll lose access to premium features on {format(new Date(subscription.currentPeriodEnd), 'MMMM dd, yyyy')}.
                 </p>
               </div>
             ) : (

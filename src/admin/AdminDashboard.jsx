@@ -20,6 +20,7 @@ import ConfigEditor from './editors/ConfigEditor';
 import MediaLibrary from './editors/MediaLibrary';
 import AppointmentsManager from './editors/appointments/AppointmentsManager';
 import InvoiceEditor from './editors/InvoiceEditor';
+import SubscriptionPage from './pages/SubscriptionPage';
 
 import PreviewFrame from './PreviewFrame';
 import DebugConsole from './DebugConsole';
@@ -174,7 +175,17 @@ export default function AdminDashboard() {
         </svg>
       ),
       onClick: () => navigate('/admin/invoices'),
-    }
+    },
+    { 
+      id: 'subscription', 
+      label: 'Subscription', 
+      path: '/admin/dashboard/subscription',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
+      )
+    },
   ];
 
   const handleLogout = async () => {
@@ -376,6 +387,8 @@ export default function AdminDashboard() {
                 <Route path="media" element={<MediaLibrary />} />
                 <Route path="appointments" element={<AppointmentsManager />} />
                 <Route path="invoicing" element={<InvoiceEditor />} />
+                <Route path="subscription" element={<SubscriptionPage />} />
+
               </Routes>
             )}
           </div>
