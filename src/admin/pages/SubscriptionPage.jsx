@@ -123,12 +123,7 @@ export default function SubscriptionPage() {
               <p className="text-lg">{subscription.plan}</p>
             </div>
             
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Current Period</h3>
-              <p className="text-lg">
-                {format(new Date(subscription.currentPeriodStart), 'MMMM dd, yyyy')} to {format(new Date(subscription.currentPeriodEnd), 'MMMM dd, yyyy')}
-              </p>
-            </div>
+
             
             {subscription.cancelAtPeriodEnd ? (
               <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
