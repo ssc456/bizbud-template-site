@@ -66,14 +66,15 @@ export default function SubscriptionPage() {
       const siteId = window.location.hostname.split('.')[0];
       const csrfToken = sessionStorage.getItem('csrfToken');
       
-      const response = await fetch('/api/subscription', {
+      // CHANGE THIS LINE to use query parameters instead of body
+      const response = await fetch(`/api/subscription?siteId=${siteId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken || ''
         },
-        credentials: 'include',
-        body: JSON.stringify({ siteId }),
+        credentials: 'include'
+        // Remove the body since we're passing the siteId in query params
       });
       
       if (response.ok) {
