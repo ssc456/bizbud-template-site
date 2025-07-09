@@ -1,62 +1,52 @@
 import { useState } from 'react';
 import { EditableField } from '../components/EditableField';
-import SectionHeader from '../components/SectionHeader';
+import FormField from '../components/FormField'; // Use FormField instead of SectionHeader
+// Remove the import for SectionHeader
 
-export default function ContactEditor({ data, onChange }) {
-  const [localData, setLocalData] = useState(data);
-
+export default function ContactEditor({ clientData, setClientData }) {
   const handleChange = (field, value) => {
-    const updated = { 
-      ...localData, 
-      contact: { 
-        ...localData.contact, 
-        [field]: value 
-      } 
-    };
-    setLocalData(updated);
-    onChange(updated);
+    setClientData({
+      ...clientData,
+      contact: {
+        ...clientData.contact,
+        [field]: value
+      }
+    });
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <SectionHeader 
-        title="Contact Information" 
-        description="Update your business contact information displayed on your website."
-      />
-      
-      <div className="mt-6 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email Address
-          </label>
-          <EditableField
-            value={localData.contact?.email || ''}
-            onChange={(value) => handleChange('email', value)}
+    <div className="space-y-6">
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h2 className="text-xl font-bold mb-4">Contact Information</h2>
+        <p className="text-gray-600 mb-6">Update your business contact information displayed on your website.</p>
+        
+        <div className="space-y-4">
+          <FormField
+            label="Email Address"
+            id="contact-email"
+            type="text"
+            value={clientData.contact?.email || ''}
+            onChange={(e) => handleChange('email', e.target.value)}
             placeholder="your@email.com"
           />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Phone Number
-          </label>
-          <EditableField
-            value={localData.contact?.phone || ''}
-            onChange={(value) => handleChange('phone', value)}
+          
+          <FormField
+            label="Phone Number"
+            id="contact-phone"
+            type="text"
+            value={clientData.contact?.phone || ''}
+            onChange={(e) => handleChange('phone', e.target.value)}
             placeholder="(555) 123-4567"
           />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Business Address
-          </label>
-          <EditableField
-            value={localData.contact?.address || ''}
-            onChange={(value) => handleChange('address', value)}
-            placeholder="123 Main St, City, State 12345"
-            multiline={true}
+          
+          <FormField
+            label="Business Address"
+            id="contact-address"
+            type="textarea"
             rows={3}
+            value={clientData.contact?.address || ''}
+            onChange={(e) => handleChange('address', e.target.value)}
+            placeholder="123 Main St, City, State 12345"
           />
         </div>
       </div>
