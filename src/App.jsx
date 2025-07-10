@@ -180,6 +180,18 @@ function App() {
       });
   }, []);
   
+  useEffect(() => {
+    // Extract the site ID from the domain or environment
+    const siteId = extractSiteId();
+    
+    // Set custom dimension for site ID
+    if (window.gtag) {
+      gtag('set', 'user_properties', {
+        site_id: siteId
+      });
+    }
+  }, []);
+
   const theme = config.theme || 'default';
 
   // Get themed components
