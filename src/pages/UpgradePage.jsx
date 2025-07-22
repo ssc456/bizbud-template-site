@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import Layout from '../components/Layout';
+import { extractSiteId } from '../utils/siteId';
 
 // Clean and simple Stripe initialization
 const stripePromise = loadStripe('pk_live_51RheRSBHbEWeyFXQSFpPLcvq0nELwXcFmo7nMjBIM7jZBVvRGre1rRJ67qF8Z4LcUO1HCCAD4XrFkADEXvHBZT8v00ypntn2GV');
@@ -13,7 +14,7 @@ export default function UpgradePage() {
   useEffect(() => {
     const fetchSiteInfo = async () => {
       try {
-        const siteId = window.location.hostname.split('.')[0];
+        const siteId = extractSiteId();
         const response = await fetch(`/api/client-data?siteId=${siteId}`);
         if (response.ok) {
           const data = await response.json();
@@ -38,7 +39,7 @@ export default function UpgradePage() {
         throw new Error("Stripe has not been properly initialized");
       }
       
-      const siteId = window.location.hostname.split('.')[0];
+      const siteId = extractSiteId();
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
