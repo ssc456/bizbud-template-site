@@ -142,20 +142,21 @@ function GallerySection({
         </div>
         
         {/* Gallery grid with staggered animation */}
-        <motion.div 
-          ref={galleryRef}
-          className={`grid gap-6 sm:gap-8 ${
-            layout === 'grid' 
-              ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
-              : layout === 'feature'
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-min'
-              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-          }`}
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-        >
+        {displayImages.length > 0 ? (
+          <motion.div 
+            ref={galleryRef}
+            className={`grid gap-6 sm:gap-8 ${
+              layout === 'grid' 
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
+                : layout === 'feature'
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-min'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+            }`}
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+          >
           {displayImages.map((image, i) => {
             // Support for both string images and object images with metadata
             const src = typeof image === 'string' ? image : image.src;
@@ -250,6 +251,35 @@ function GallerySection({
             </motion.div>
           )}
         </motion.div>
+        ) : (
+          /* Empty state when no images */
+          <motion.div
+            className="text-center py-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className={`w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br ${colors.gradient} opacity-20 flex items-center justify-center`}>
+              <svg className="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Images Yet</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Gallery images will appear here once they're added. Check back soon for beautiful visual content.
+            </p>
+            {viewAllLink && (
+              <a 
+                href={viewAllLink}
+                className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${colors.gradient} text-white rounded-full hover:shadow-lg transition-all duration-300 transform hover:scale-105`}
+              >
+                <span>Browse Gallery</span>
+                <ExternalLink size={16} />
+              </a>
+            )}
+          </motion.div>
+        )}
         
         {/* Lightbox modal for full-screen image viewing */}
         {selectedImage && (

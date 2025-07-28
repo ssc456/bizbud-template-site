@@ -28,8 +28,10 @@ function Header({ siteTitle, logoUrl, config, primaryColor }) {
     pink: { bg: 'bg-pink-600', text: 'text-pink-600', hover: 'hover:text-pink-600' },
     purple: { bg: 'bg-purple-600', text: 'text-purple-600', hover: 'hover:text-purple-600' },
     blue: { bg: 'bg-blue-600', text: 'text-blue-600', hover: 'hover:text-blue-600' },
-    green: { bg: 'bg-green-600', text: 'text-green-600', hover: 'hover:text-green-600' }
-  }[primaryColor] ?? colorClasses.pink
+    green: { bg: 'bg-green-600', text: 'text-green-600', hover: 'hover:text-green-600' },
+    red: { bg: 'bg-red-600', text: 'text-red-600', hover: 'hover:text-red-600' },
+    yellow: { bg: 'bg-amber-600', text: 'text-amber-600', hover: 'hover:text-amber-600' }
+  }[primaryColor] ?? { bg: 'bg-pink-600', text: 'text-pink-600', hover: 'hover:text-pink-600' }
 
   const handleNavClick = (e, id) => {
     e.preventDefault()
@@ -43,8 +45,8 @@ function Header({ siteTitle, logoUrl, config, primaryColor }) {
                                location.pathname === '/book-appointment' || 
                                location.pathname.includes('/upgrade-success');
   
-  // Force "scrolled" styling on white background pages
-  const shouldUseScrolledStyle = scrolled || isWhiteBackgroundPage;
+  // Force "scrolled" styling on white background pages or minimalist theme
+  const shouldUseScrolledStyle = scrolled || isWhiteBackgroundPage || (config.theme === 'minimalist');
 
   // Update the Book Now button logic
   const renderBookButton = () => {

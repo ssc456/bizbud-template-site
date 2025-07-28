@@ -31,6 +31,16 @@ function ServicesSection({
       accent: 'text-green-500',
       gradient: 'from-green-500 to-emerald-400',
       bg: 'bg-green-500'
+    },
+    red: {
+      accent: 'text-red-500',
+      gradient: 'from-red-500 to-rose-400',
+      bg: 'bg-red-500'
+    },
+    yellow: {
+      accent: 'text-yellow-500',
+      gradient: 'from-yellow-400 to-amber-400',
+      bg: 'bg-yellow-500'
     }
   }[primaryColor] || colorClasses.blue;
 

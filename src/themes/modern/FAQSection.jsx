@@ -29,6 +29,18 @@ function FAQSection({ title, items, primaryColor }) {
       bg: 'bg-green-500',
       gradient: 'from-green-500 to-emerald-400',
       light: 'bg-green-50',
+    },
+    red: {
+      accent: 'text-red-500',
+      bg: 'bg-red-500',
+      gradient: 'from-red-500 to-rose-400',
+      light: 'bg-red-50',
+    },
+    yellow: {
+      accent: 'text-yellow-500',
+      bg: 'bg-yellow-500',
+      gradient: 'from-yellow-400 to-amber-400',
+      light: 'bg-yellow-50',
     }
   }[primaryColor] || colorClasses.blue;
 

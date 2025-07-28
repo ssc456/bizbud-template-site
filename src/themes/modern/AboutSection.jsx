@@ -26,6 +26,18 @@ function AboutSection({ title, description, image, primaryColor, logoUrl }) {
       gradient: 'from-green-500 to-emerald-400',
       light: 'bg-green-50',
       border: 'border-green-200'
+    },
+    red: {
+      accent: 'text-red-500',
+      gradient: 'from-red-500 to-rose-400',
+      light: 'bg-red-50',
+      border: 'border-red-200'
+    },
+    yellow: {
+      accent: 'text-yellow-500',
+      gradient: 'from-yellow-400 to-amber-400',
+      light: 'bg-yellow-50',
+      border: 'border-yellow-200'
     }
   }[primaryColor] || colorClasses.blue;
 

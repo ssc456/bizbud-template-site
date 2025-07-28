@@ -23,6 +23,16 @@ function GallerySection({ title, subtitle, layout, images, primaryColor, maxImag
       accent: 'text-green-500',
       bg: 'bg-green-500',
       gradient: 'from-green-500 to-emerald-400',
+    },
+    red: {
+      accent: 'text-red-500',
+      bg: 'bg-red-500',
+      gradient: 'from-red-500 to-rose-400',
+    },
+    yellow: {
+      accent: 'text-yellow-500',
+      bg: 'bg-yellow-500',
+      gradient: 'from-yellow-400 to-amber-400',
     }
   }[primaryColor] || colorClasses.blue;
 
@@ -37,36 +47,57 @@ function GallerySection({ title, subtitle, layout, images, primaryColor, maxImag
           <p className="text-gray-600 text-lg">{subtitle}</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayImages.map((image, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="overflow-hidden rounded-lg shadow-md bg-white"
-            >
-              <div className="h-64 overflow-hidden">
-                {image.src ? (
-                  <img 
-                    src={image.src} 
-                    alt={image.alt || title}
-                    className="w-full h-full object-cover transition-transform hover:scale-110"
-                  />
-                ) : (
-                  <div className={`w-full h-full bg-gradient-to-br ${colorClasses.gradient} flex items-center justify-center text-white`}>
-                    <span className="text-xl font-medium">Image {index + 1}</span>
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-medium mb-1">{image.title}</h3>
-                <p className="text-gray-600 text-sm">{image.description}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {displayImages.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayImages.map((image, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="overflow-hidden rounded-lg shadow-md bg-white"
+              >
+                <div className="h-64 overflow-hidden">
+                  {image.src ? (
+                    <img 
+                      src={image.src} 
+                      alt={image.alt || title}
+                      className="w-full h-full object-cover transition-transform hover:scale-110"
+                    />
+                  ) : (
+                    <div className={`w-full h-full bg-gradient-to-br ${colorClasses.gradient} flex items-center justify-center text-white`}>
+                      <span className="text-xl font-medium">Image {index + 1}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-medium mb-1">{image.title}</h3>
+                  <p className="text-gray-600 text-sm">{image.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          /* Empty state when no images */
+          <motion.div
+            className="text-center py-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className={`w-20 h-20 mx-auto mb-6 rounded-lg bg-gradient-to-br ${colorClasses.gradient} opacity-20 flex items-center justify-center`}>
+              <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Gallery Coming Soon</h3>
+            <p className="text-gray-600 text-lg max-w-md mx-auto">
+              We're preparing beautiful images to showcase here. Please check back later for our gallery collection.
+            </p>
+          </motion.div>
+        )}
       </div>
     </section>
   );

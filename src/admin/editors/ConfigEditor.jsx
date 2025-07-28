@@ -1,5 +1,5 @@
 import FormField from '../components/FormField'
-import { availableThemes } from '../../themes';
+import { getThemes } from '../../themes';
 
 function ConfigEditor({ clientData, setClientData }) {
   const handleChange = (field, value) => {
@@ -12,6 +12,7 @@ function ConfigEditor({ clientData, setClientData }) {
     }))
   }
 
+  const themes = getThemes();
   const colorOptions = [
     { value: 'blue', label: 'Blue' },
     { value: 'green', label: 'Green' },
@@ -48,9 +49,9 @@ function ConfigEditor({ clientData, setClientData }) {
             onChange={(e) => handleChange('theme', e.target.value)}
             className="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
-            {availableThemes.map((theme) => (
-              <option key={theme} value={theme}>
-                {theme.charAt(0).toUpperCase() + theme.slice(1)}
+            {themes.map((theme) => (
+              <option key={theme.id} value={theme.id}>
+                {theme.name}
               </option>
             ))}
           </select>

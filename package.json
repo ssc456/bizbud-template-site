@@ -17,6 +17,7 @@
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.1",
     "formidable": "^3.5.4",
     "framer-motion": "^12.19.1",
     "jspdf": "^3.0.1",

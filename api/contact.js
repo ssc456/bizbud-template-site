@@ -64,7 +64,6 @@ export default async function handler(req, res) {
             <td style="padding: 10px; border: 1px solid #e2e8f0;">${message.replace(/\n/g, '<br>')}</td>
           </tr>
         </table>
-        <p>You can reply directly to this email to respond to the message.</p>
       `
     });
     

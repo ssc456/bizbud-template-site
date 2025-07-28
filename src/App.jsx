@@ -6,6 +6,7 @@ import Header from './components/Header'
 import { getThemedComponent } from './themes';
 import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
+import ResetPassword from './admin/ResetPassword';
 import { extractSiteId } from './utils/siteId';
 import { initializePreviewDebugging, updatePreviewTitle } from './utils/previewHelpers';
 import AppointmentsSection from './components/AppointmentsSection';
@@ -221,6 +222,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/reset-password" element={<ResetPassword />} />
         <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
         <Route path="/admin/invoices" element={<InvoiceManager />} />
         <Route path="/admin/appointments" element={<AppointmentsAdmin />} /> {/* Add this route */}

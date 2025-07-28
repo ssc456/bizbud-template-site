@@ -46,6 +46,16 @@ function HeroSection({
       gradient: 'from-green-500 to-emerald-400',
       button: 'bg-gradient-to-r from-green-500 to-emerald-400',
       text: 'text-green-500'
+    },
+    red: {
+      gradient: 'from-red-500 to-rose-400',
+      button: 'bg-gradient-to-r from-red-500 to-rose-400',
+      text: 'text-red-500'
+    },
+    yellow: {
+      gradient: 'from-yellow-400 to-amber-400',
+      button: 'bg-gradient-to-r from-yellow-400 to-amber-400',
+      text: 'text-yellow-500'
     }
   }[primaryColor] || colorClasses.blue;
 
