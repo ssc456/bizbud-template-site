@@ -1,10 +1,54 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Camera } from 'lucide-react';
+
+// Component for handling image loading with fallback
+function GalleryImage({ src, alt, title, description, colors, className, isPlaceholder = false, onClick }) {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(!isPlaceholder && src);
+
+  const handleImageLoad = () => setIsLoading(false);
+  const handleImageError = () => { setIsLoading(false); setHasError(true); };
+  
+  const showPlaceholder = isPlaceholder || !src || hasError || src === 'PLACEHOLDER' || src.includes('placeholder');
+
+  if (showPlaceholder) {
+    return (
+      <div className={`${className} ${colors.light} flex flex-col items-center justify-center text-gray-400 cursor-not-allowed`}>
+        <Camera size={24} className="mb-2 opacity-60" />
+        <span className="text-sm font-light opacity-70 text-center px-2">{title || 'Gallery Image'}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${className} relative overflow-hidden cursor-pointer`} onClick={onClick}>
+      {isLoading && (
+        <div className={`absolute inset-0 ${colors.light} flex items-center justify-center`}>
+          <div className="animate-spin rounded-full h-6 w-6 border border-gray-300 border-t-transparent"></div>
+        </div>
+      )}
+      <img src={src} alt={alt} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+           onLoad={handleImageLoad} onError={handleImageError} style={{ display: isLoading ? 'none' : 'block' }} />
+    </div>
+  );
+}
 
 function GallerySection({ title, images, primaryColor }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // Process images to detect placeholders
+  const processedImages = (images || []).map((image, index) => {
+    const src = image?.src;
+    const isPlaceholder = !src || src === 'PLACEHOLDER' || src.includes('placeholder') || src.includes('example.com');
+    return {
+      ...image, alt: image?.alt || `Gallery image ${index + 1}`, title: image?.title || `Gallery Item ${index + 1}`,
+      description: image?.description || '', isPlaceholder
+    };
+  });
+
+  const validImages = processedImages.filter(img => !img.isPlaceholder);
 
   // Minimalist color mapping
   const colorClasses = {
@@ -45,23 +89,22 @@ function GallerySection({ title, images, primaryColor }) {
   };
 
   const openLightbox = (image, index) => {
-    setSelectedImage(image);
-    setSelectedIndex(index);
+    if (!image.isPlaceholder) {
+      setSelectedImage(image);
+      const validIndex = validImages.findIndex(validItem => validItem === image);
+      setSelectedIndex(validIndex);
+    }
   };
 
-  const closeLightbox = () => {
-    setSelectedImage(null);
-  };
-
+  const closeLightbox = () => setSelectedImage(null);
   const nextImage = () => {
-    const nextIndex = (selectedIndex + 1) % images.length;
-    setSelectedImage(images[nextIndex]);
+    const nextIndex = (selectedIndex + 1) % validImages.length;
+    setSelectedImage(validImages[nextIndex]);
     setSelectedIndex(nextIndex);
   };
-
   const prevImage = () => {
-    const prevIndex = (selectedIndex - 1 + images.length) % images.length;
-    setSelectedImage(images[prevIndex]);
+    const prevIndex = (selectedIndex - 1 + validImages.length) % validImages.length;
+    setSelectedImage(validImages[prevIndex]);
     setSelectedIndex(prevIndex);
   };
 
@@ -91,30 +134,37 @@ function GallerySection({ title, images, primaryColor }) {
           </motion.div>
           
           {/* Gallery Grid */}
-          {images && images.length > 0 ? (
+          {processedImages && processedImages.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {images.map((item, index) => (
+              {processedImages.map((item, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="group cursor-pointer"
+                  className={`group ${!item.isPlaceholder ? 'cursor-pointer' : ''}`}
                   onClick={() => openLightbox(item, index)}
                 >
                   <div className="relative aspect-square overflow-hidden bg-gray-100">
-                    <img
+                    <GalleryImage 
                       src={item.src}
-                      alt={item.alt || `Gallery image ${index + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      alt={item.alt}
+                      title={item.title}
+                      description={item.description}
+                      isPlaceholder={item.isPlaceholder}
+                      colors={colorClasses}
+                      className="w-full h-full"
+                      onClick={() => openLightbox(item, index)}
                     />
                     
-                    {/* Minimalist overlay */}
-                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                    {/* Minimalist overlay - only for real images */}
+                    {!item.isPlaceholder && (
+                      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                    )}
                     
-                    {/* Title overlay if available */}
-                    {item.title && (
+                    {/* Title overlay if available - only for real images */}
+                    {!item.isPlaceholder && item.title && (
                       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <h3 className="text-white font-medium text-lg">
                           {item.title}
@@ -170,7 +220,7 @@ function GallerySection({ title, images, primaryColor }) {
           </button>
           
           {/* Navigation */}
-          {items.length > 1 && (
+          {validImages.length > 1 && (
             <>
               <button
                 onClick={(e) => { e.stopPropagation(); prevImage(); }}
@@ -218,9 +268,9 @@ function GallerySection({ title, images, primaryColor }) {
           </motion.div>
           
           {/* Image counter */}
-          {items.length > 1 && (
+          {validImages.length > 1 && (
             <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-white font-light">
-              {selectedIndex + 1} / {items.length}
+              {selectedIndex + 1} / {validImages.length}
             </div>
           )}
         </motion.div>

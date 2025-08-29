@@ -1,6 +1,58 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { X, ZoomIn, ExternalLink } from 'lucide-react';
+import { X, ZoomIn, ExternalLink, Camera, Image as ImageIcon } from 'lucide-react';
+
+// Component for handling image loading with fallback
+function GalleryImage({ src, alt, title, description, isPlaceholder, colors, className, onClick }) {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(!isPlaceholder && src);
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
+
+  const handleImageError = () => {
+    setIsLoading(false);
+    setHasError(true);
+  };
+
+  // Show placeholder if explicitly marked as placeholder, no src, or image failed to load
+  const showPlaceholder = isPlaceholder || !src || hasError;
+
+  if (showPlaceholder) {
+    return (
+      <div className={`${className} bg-gradient-to-br ${colors.gradient} opacity-20 flex flex-col items-center justify-center text-gray-600 cursor-pointer group`} onClick={onClick}>
+        <Camera size={32} className="mb-2 opacity-60 group-hover:opacity-80 transition-opacity" />
+        <span className="text-sm font-medium opacity-70 group-hover:opacity-90 transition-opacity">
+          {title || 'Gallery Image'}
+        </span>
+        {description && (
+          <span className="text-xs opacity-50 text-center mt-1 px-2">
+            {description.substring(0, 50)}...
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${className} relative overflow-hidden`}>
+      {isLoading && (
+        <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-20 flex items-center justify-center`}>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-400 border-t-transparent"></div>
+        </div>
+      )}
+      <img 
+        src={src} 
+        alt={alt}
+        className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ease-in-out"
+        onLoad={handleImageLoad}
+        onError={handleImageError}
+        style={{ display: isLoading ? 'none' : 'block' }}
+      />
+    </div>
+  );
+}
 
 function GallerySection({ 
   title, 
@@ -15,7 +67,27 @@ function GallerySection({
   const [isHovering, setIsHovering] = useState(null);
   const galleryRef = useRef(null);
   
-  const displayImages = images.slice(0, maxImages);
+  // Filter out invalid images and create placeholder structure for failed/missing images
+  const processedImages = images.slice(0, maxImages).map((image, index) => {
+    const src = typeof image === 'string' ? image : image.src;
+    const alt = typeof image === 'string' ? `Gallery image ${index+1}` : image.alt || `Gallery image ${index+1}`;
+    const title = typeof image === 'string' ? null : image.title;
+    const description = typeof image === 'string' ? null : image.description;
+    
+    // Check if this is a placeholder or invalid image
+    const isPlaceholder = !src || src === 'PLACEHOLDER' || src.includes('placeholder') || src.includes('example.com');
+    
+    return {
+      src: isPlaceholder ? null : src,
+      alt,
+      title,
+      description,
+      isPlaceholder,
+      index
+    };
+  });
+  
+  const displayImages = processedImages;
   const hasMore = images.length > maxImages;
   
   const containerVariants = {
@@ -158,12 +230,6 @@ function GallerySection({
             viewport={{ once: true, amount: 0.1 }}
           >
           {displayImages.map((image, i) => {
-            // Support for both string images and object images with metadata
-            const src = typeof image === 'string' ? image : image.src;
-            const alt = typeof image === 'string' ? `Gallery image ${i+1}` : image.alt || `Gallery image ${i+1}`;
-            const title = typeof image === 'string' ? null : image.title;
-            const description = typeof image === 'string' ? null : image.description;
-            
             // Special layout for featured image in feature layout
             const isFeature = layout === 'feature' && i === 0;
             
@@ -176,43 +242,58 @@ function GallerySection({
                 }`}
                 onMouseEnter={() => setIsHovering(i)}
                 onMouseLeave={() => setIsHovering(null)}
-                onClick={() => setSelectedImage({src, alt, title, description})}
+                onClick={() => !image.isPlaceholder && setSelectedImage({
+                  src: image.src, 
+                  alt: image.alt, 
+                  title: image.title, 
+                  description: image.description
+                })}
               >
                 <div 
-                  className={`rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 ${colors.glow} ${
+                  className={`rounded-xl overflow-hidden ${!image.isPlaceholder ? 'cursor-pointer' : ''} shadow-lg hover:shadow-xl transition-all duration-300 ${colors.glow} ${
                     layout === 'masonry' && !isFeature ? getRandomHeight(i) : 'h-64 md:h-80'
                   } ${isFeature ? 'md:h-[500px]' : ''}`}
                 >
                   {/* Image with skeleton loading state */}
-                  <div className="relative w-full">
-                    <img 
-                      src={src} 
-                      alt={alt}
-                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ease-in-out"
-                    />
-                  </div>
+                  <GalleryImage 
+                    src={image.src}
+                    alt={image.alt}
+                    title={image.title}
+                    description={image.description}
+                    isPlaceholder={image.isPlaceholder}
+                    colors={colors}
+                    className="w-full h-full"
+                    onClick={() => !image.isPlaceholder && setSelectedImage({
+                      src: image.src, 
+                      alt: image.alt, 
+                      title: image.title, 
+                      description: image.description
+                    })}
+                  />
                   
-                  {/* Overlay that appears on hover */}
-                  <div className={`absolute inset-0 ${colors.overlay} opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6`}>
-                    <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                      {title && (
-                        <h3 className="text-white text-xl font-bold mb-2">{title}</h3>
-                      )}
-                      {description && (
-                        <p className="text-white/90 line-clamp-2 text-sm">{description}</p>
-                      )}
+                  {/* Overlay that appears on hover - only for real images */}
+                  {!image.isPlaceholder && (
+                    <div className={`absolute inset-0 ${colors.overlay} opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6`}>
+                      <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        {image.title && (
+                          <h3 className="text-white text-xl font-bold mb-2">{image.title}</h3>
+                        )}
+                        {image.description && (
+                          <p className="text-white/90 line-clamp-2 text-sm">{image.description}</p>
+                        )}
+                      </div>
+                      
+                      <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
+                        <motion.button 
+                          className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white hover:text-gray-900 transition-colors"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <ZoomIn size={18} />
+                        </motion.button>
+                      </div>
                     </div>
-                    
-                    <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                      <motion.button 
-                        className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white hover:text-gray-900 transition-colors"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <ZoomIn size={18} />
-                      </motion.button>
-                    </div>
-                  </div>
+                  )}
                 </div>
                 
                 {/* Floating indicator that appears when hovering (outside image) */}

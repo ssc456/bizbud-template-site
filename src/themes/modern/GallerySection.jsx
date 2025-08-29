@@ -1,7 +1,48 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { Camera } from 'lucide-react';
+
+// Component for handling image loading with fallback
+function GalleryImage({ src, alt, title, description, colors, className, isPlaceholder = false }) {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(!isPlaceholder && src);
+
+  const handleImageLoad = () => setIsLoading(false);
+  const handleImageError = () => { setIsLoading(false); setHasError(true); };
+  
+  const showPlaceholder = isPlaceholder || !src || hasError || src === 'PLACEHOLDER';
+
+  if (showPlaceholder) {
+    return (
+      <div className={`${className} bg-gradient-to-br ${colors.gradient} opacity-20 flex flex-col items-center justify-center text-gray-600`}>
+        <Camera size={28} className="mb-2 opacity-60" />
+        <span className="text-sm font-medium opacity-70 text-center px-2">{title || 'Gallery Image'}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${className} relative overflow-hidden`}>
+      {isLoading && (
+        <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-20 flex items-center justify-center`}>
+          <div className="animate-spin rounded-full h-6 w-6 border-2 border-gray-400 border-t-transparent"></div>
+        </div>
+      )}
+      <img src={src} alt={alt} className="w-full h-full object-cover transition-transform hover:scale-110"
+           onLoad={handleImageLoad} onError={handleImageError} style={{ display: isLoading ? 'none' : 'block' }} />
+    </div>
+  );
+}
 
 function GallerySection({ title, subtitle, layout, images, primaryColor, maxImages = 6 }) {
-  const displayImages = images?.slice(0, maxImages) || [];
+  const processedImages = (images || []).slice(0, maxImages).map((image, index) => {
+    const src = typeof image === 'string' ? image : image?.src;
+    const isPlaceholder = !src || src === 'PLACEHOLDER' || src.includes('placeholder');
+    return {
+      src, alt: image?.alt || `Gallery image ${index + 1}`, title: image?.title || `Gallery Item ${index + 1}`,
+      description: image?.description || '', isPlaceholder
+    };
+  });
   
   const colorClasses = {
     pink: {
@@ -47,29 +88,15 @@ function GallerySection({ title, subtitle, layout, images, primaryColor, maxImag
           <p className="text-gray-600 text-lg">{subtitle}</p>
         </div>
         
-        {displayImages.length > 0 ? (
+        {processedImages.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayImages.map((image, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="overflow-hidden rounded-lg shadow-md bg-white"
-              >
+            {processedImages.map((image, index) => (
+              <motion.div key={index} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="overflow-hidden rounded-lg shadow-md bg-white">
                 <div className="h-64 overflow-hidden">
-                  {image.src ? (
-                    <img 
-                      src={image.src} 
-                      alt={image.alt || title}
-                      className="w-full h-full object-cover transition-transform hover:scale-110"
-                    />
-                  ) : (
-                    <div className={`w-full h-full bg-gradient-to-br ${colorClasses.gradient} flex items-center justify-center text-white`}>
-                      <span className="text-xl font-medium">Image {index + 1}</span>
-                    </div>
-                  )}
+                  <GalleryImage src={image.src} alt={image.alt} title={image.title} description={image.description}
+                    isPlaceholder={image.isPlaceholder} colors={colorClasses} className="w-full h-full" />
                 </div>
                 <div className="p-4">
                   <h3 className="text-lg font-medium mb-1">{image.title}</h3>
