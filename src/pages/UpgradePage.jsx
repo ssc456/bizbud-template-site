@@ -92,7 +92,7 @@ export default function UpgradePage() {
             <div className="border rounded-xl p-6 hover:shadow-lg transition-shadow">
               <h2 className="text-xl font-semibold text-gray-800">Monthly Plan</h2>
               <div className="my-4">
-                <span className="text-4xl font-bold">£25</span>
+                <span className="text-4xl font-bold">£14.99</span>
                 <span className="text-gray-600">/month</span>
               </div>
               <ul className="space-y-2 mb-6">
@@ -127,7 +127,7 @@ export default function UpgradePage() {
             <div className="border rounded-xl p-6 hover:shadow-lg transition-shadow">
               <h2 className="text-xl font-semibold text-gray-800">Annual Plan</h2>
               <div className="my-4">
-                <span className="text-4xl font-bold">£250</span>
+                <span className="text-4xl font-bold">£149.99</span>
                 <span className="text-gray-600">/year</span>
               </div>
               <ul className="space-y-2 mb-6">
@@ -147,7 +147,7 @@ export default function UpgradePage() {
                   <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <strong>Save £50 </strong> compared to monthly
+                  <strong>Save £30 </strong> compared to monthly
                 </li>
               </ul>
               <button
